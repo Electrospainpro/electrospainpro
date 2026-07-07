@@ -1,32 +1,7 @@
 import Container from "@/components/ui/Container";
 import Section from "@/components/ui/Section";
-
-const categories = [
-  {
-    title: "Electricidad",
-    icon: "⚡",
-  },
-  {
-    title: "Telecomunicaciones",
-    icon: "📡",
-  },
-  {
-    title: "Fotovoltaica",
-    icon: "🌞",
-  },
-  {
-    title: "Herramientas",
-    icon: "🔧",
-  },
-  {
-    title: "Instrumentación",
-    icon: "📐",
-  },
-  {
-    title: "Seguridad",
-    icon: "🦺",
-  },
-];
+import { categories } from "@/data/categories";
+import Link from "next/link";
 
 export default function Categories() {
   return (
@@ -38,18 +13,23 @@ export default function Categories() {
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {categories.map((category) => (
-            <div
-              key={category.title}
-              className="rounded-xl border p-6 transition hover:shadow-lg"
+            <Link
+              key={category.id}
+              href={`/${category.slug}`}
+              className="rounded-xl border p-6 transition hover:shadow-lg hover:border-blue-500"
             >
               <div className="mb-4 text-4xl">
                 {category.icon}
               </div>
 
               <h3 className="text-xl font-semibold">
-                {category.title}
+                {category.name}
               </h3>
-            </div>
+
+              <p className="mt-2 text-sm text-gray-600">
+                {category.description}
+              </p>
+            </Link>
           ))}
         </div>
       </Container>

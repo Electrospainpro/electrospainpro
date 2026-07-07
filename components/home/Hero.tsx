@@ -1,14 +1,14 @@
 import Container from "@/components/ui/Container";
 import Section from "@/components/ui/Section";
 import PrimaryButton from "@/components/buttons/PrimaryButton";
+import SecondaryButton from "@/components/buttons/SecondaryButton";
 
 export default function Hero() {
   return (
     <Section>
       <Container>
         <div className="max-w-4xl">
-
-          <p className="mb-3 text-blue-600 font-semibold uppercase tracking-widest">
+          <p className="mb-3 font-semibold uppercase tracking-widest text-blue-600">
             Bienvenido a ElectroSpainPro
           </p>
 
@@ -24,17 +24,14 @@ export default function Hero() {
           </p>
 
           <div className="mt-8 flex gap-4">
-
-            <PrimaryButton>
+            <PrimaryButton href="/comparativa">
               Ver comparativas
             </PrimaryButton>
 
-            <button className="rounded-lg border px-6 py-3 hover:bg-gray-100">
+            <SecondaryButton href="/categorias">
               Explorar categorías
-            </button>
-
+            </SecondaryButton>
           </div>
-
         </div>
       </Container>
     </Section>

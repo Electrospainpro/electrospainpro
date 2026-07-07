@@ -1,14 +1,14 @@
 import Link from "next/link";
 
-interface PrimaryButtonProps {
+interface SecondaryButtonProps {
   children: React.ReactNode;
   href: string;
 }
 
-export default function PrimaryButton({
+export default function SecondaryButton({
   children,
   href,
-}: PrimaryButtonProps) {
+}: SecondaryButtonProps) {
   return (
     <Link
       href={href}
@@ -17,14 +17,15 @@ export default function PrimaryButton({
         items-center
         justify-center
         rounded-lg
-        bg-blue-600
+        border
+        border-gray-300
         px-6
         py-3
         font-medium
-        text-white
+        text-gray-700
         transition
-        hover:bg-blue-700
-        active:scale-95
+        hover:border-blue-600
+        hover:text-blue-600
       "
     >
       {children}
