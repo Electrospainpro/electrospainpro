@@ -46,6 +46,7 @@
     --color-white: #fff;
     --spacing: .25rem;
     --container-3xl: 48rem;
+    --container-4xl: 56rem;
     --container-7xl: 80rem;
     --text-sm: .875rem;
     --text-sm--line-height: calc(1.25 / .875);
@@ -418,6 +419,10 @@
     max-width: var(--container-3xl);
   }
 
+  .max-w-4xl {
+    max-width: var(--container-4xl);
+  }
+
   .max-w-7xl {
     max-width: var(--container-7xl);
   }
@@ -555,10 +560,6 @@
 
   .py-16 {
     padding-block: calc(var(--spacing) * 16);
-  }
-
-  .py-20 {
-    padding-block: calc(var(--spacing) * 20);
   }
 
   .text-center {
@@ -749,18 +750,6 @@
     }
   }
 
-  @media (min-width: 48rem) {
-    .md\:px-6 {
-      padding-inline: calc(var(--spacing) * 6);
-    }
-  }
-
-  @media (min-width: 48rem) {
-    .md\:py-16 {
-      padding-block: calc(var(--spacing) * 16);
-    }
-  }
-
   @media (min-width: 64rem) {
     .lg\:grid-cols-3 {
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -776,12 +765,6 @@
   @media (min-width: 64rem) {
     .lg\:px-8 {
       padding-inline: calc(var(--spacing) * 8);
-    }
-  }
-
-  @media (min-width: 64rem) {
-    .lg\:py-20 {
-      padding-block: calc(var(--spacing) * 20);
     }
   }
 }

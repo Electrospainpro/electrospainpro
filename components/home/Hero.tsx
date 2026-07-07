@@ -6,19 +6,21 @@ export default function Hero() {
   return (
     <Section>
       <Container>
-        <div className="max-w-3xl">
+        <div className="max-w-4xl">
 
           <p className="mb-3 text-blue-600 font-semibold uppercase tracking-widest">
             Bienvenido a ElectroSpainPro
           </p>
 
           <h1 className="text-5xl font-bold leading-tight">
-            Encuentra el mejor electrodoméstico al mejor precio.
+            El comparador profesional para electricistas, instaladores y especialistas técnicos.
           </h1>
 
           <p className="mt-6 text-lg text-gray-600">
-            Comparativas profesionales, opiniones verificadas,
-            análisis en profundidad y los mejores enlaces de compra.
+            Descubre comparativas reales, análisis profesionales,
+            guías técnicas y las mejores herramientas para elegir
+            productos eléctricos, fotovoltaicos, telecomunicaciones
+            e instrumentación.
           </p>
 
           <div className="mt-8 flex gap-4">
@@ -28,7 +30,7 @@ export default function Hero() {
             </PrimaryButton>
 
             <button className="rounded-lg border px-6 py-3 hover:bg-gray-100">
-              Explorar productos
+              Explorar categorías
             </button>
 
           </div>
