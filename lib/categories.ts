@@ -1,12 +1,10 @@
 import { categories } from "@/data/categories";
 
-export function getCategories() {
+export function getAllCategories() {
   return categories;
 }
 
-export function getCategory(
-  slug: string
-) {
+export function getCategoryBySlug(slug: string) {
   return categories.find(
     (category) => category.slug === slug
   );

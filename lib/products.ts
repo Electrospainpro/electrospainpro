@@ -10,19 +10,14 @@ export function getProductBySlug(slug: string) {
   );
 }
 
-export function getProductsByCategory(
-  category: string
-) {
+export function getProductsByCategory(category: string) {
   return products.filter(
     (product) => product.category === category
   );
 }
 
-export function getProductsBySubcategory(
-  subcategory: string
-) {
+export function getProductsBySubcategory(subcategory: string) {
   return products.filter(
-    (product) =>
-      product.subcategory === subcategory
+    (product) => product.subcategory === subcategory
   );
 }

@@ -7,6 +7,7 @@ const links = [
   { href: "/telecomunicaciones", label: "Telecomunicaciones" },
   { href: "/fotovoltaica", label: "Fotovoltaica" },
   { href: "/herramientas", label: "Herramientas" },
+  { href: "/marcas", label: "Marcas" },
 ];
 
 export default function Navbar() {
@@ -26,7 +27,7 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-gray-700 hover:text-blue-600"
+                className="text-gray-700 transition hover:text-blue-600"
               >
                 {link.label}
               </Link>

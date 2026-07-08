@@ -1,12 +1,14 @@
 import { notFound } from "next/navigation";
 
+import ProductBreadcrumb from "@/components/product/ProductBreadcrumb";
+import ProductImage from "@/components/product/ProductImage";
 import ProductHeader from "@/components/product/ProductHeader";
+import ProductESPScore from "@/components/product/ProductESPScore";
 import ProductAffiliateButtons from "@/components/product/ProductAffiliateButtons";
 import ProductSpecifications from "@/components/product/ProductSpecifications";
 import ProductProsCons from "@/components/product/ProductProsCons";
-import ProductBreadcrumb from "@/components/product/ProductBreadcrumb";
-import ProductCTA from "@/components/product/ProductCTA";
 import ProductRelated from "@/components/product/ProductRelated";
+import ProductCTA from "@/components/product/ProductCTA";
 
 import { getProductBySlug } from "@/lib/products";
 
@@ -27,13 +29,54 @@ export default async function ProductPage({
     notFound();
   }
 
+  const affiliateLinks = [];
+
+  if (product.affiliateLinks.amazon) {
+    affiliateLinks.push({
+      store: "Amazon",
+      url: product.affiliateLinks.amazon,
+    });
+  }
+
+  if (product.affiliateLinks.manomano) {
+    affiliateLinks.push({
+      store: "ManoMano",
+      url: product.affiliateLinks.manomano,
+    });
+  }
+
+  if (product.affiliateLinks.rs) {
+    affiliateLinks.push({
+      store: "RS",
+      url: product.affiliateLinks.rs,
+    });
+  }
+
+  if (product.affiliateLinks.farnell) {
+    affiliateLinks.push({
+      store: "Farnell",
+      url: product.affiliateLinks.farnell,
+    });
+  }
+
+  if (product.affiliateLinks.leroymerlin) {
+    affiliateLinks.push({
+      store: "Leroy Merlin",
+      url: product.affiliateLinks.leroymerlin,
+    });
+  }
+
   return (
     <main className="mx-auto max-w-7xl px-6 py-12">
-
       <ProductBreadcrumb
         category={product.category}
         subcategory={product.subcategory}
         product={product.name}
+      />
+
+      <ProductImage
+        image={product.image}
+        name={product.name}
       />
 
       <ProductHeader
@@ -43,21 +86,14 @@ export default async function ProductPage({
         shortDescription={product.shortDescription}
       />
 
+      {product.espScore && (
+        <ProductESPScore
+          score={product.espScore.overall}
+        />
+      )}
+
       <ProductAffiliateButtons
-        affiliateLinks={[
-          ...(product.affiliateLinks.amazon
-            ? [{ store: "Amazon", url: product.affiliateLinks.amazon }]
-            : []),
-          ...(product.affiliateLinks.manomano
-            ? [{ store: "ManoMano", url: product.affiliateLinks.manomano }]
-            : []),
-          ...(product.affiliateLinks.rs
-            ? [{ store: "RS", url: product.affiliateLinks.rs }]
-            : []),
-          ...(product.affiliateLinks.farnell
-            ? [{ store: "Farnell", url: product.affiliateLinks.farnell }]
-            : []),
-        ]}
+        affiliateLinks={affiliateLinks}
       />
 
       <ProductSpecifications
@@ -71,16 +107,15 @@ export default async function ProductPage({
 
       <ProductRelated
         products={[
-          "Magnetotérmico Schneider C20",
-          "Magnetotérmico ABB S201",
-          "Magnetotérmico Legrand DX3",
+          "Schneider Acti9 C20",
+          "ABB S201 C16",
+          "Legrand DX³ C16",
         ]}
       />
 
       <ProductCTA
         title={product.name}
       />
-
     </main>
   );
 }

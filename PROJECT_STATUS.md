@@ -1,106 +1,277 @@
-# ElectroSpainPro - PROJECT_STATUS
+# PROJECT_STATUS.md
 
-**Fecha:** 2026-07-07
+**Fecha de actualización:** 07/07/2026
 
-## Estado general
+# ElectroSpainPro
 
-### Infraestructura
+## Estado del proyecto
 
--   ✅ Next.js
--   ✅ TypeScript
--   ✅ Tailwind CSS
--   ✅ Git y GitHub configurados
+ElectroSpainPro ya no se considera una simple página web.
 
-### Arquitectura
+El proyecto pasa oficialmente a desarrollarse como una empresa digital cuyo objetivo es convertirse en la plataforma de referencia para profesionales de:
 
-    app/
-    components/
-    data/
-    public/
+- Electricidad
+- Fotovoltaica
+- Telecomunicaciones
+- Instrumentación
+- Herramientas
+- Seguridad
+
+---
+
+# Objetivo principal
+
+Construir el mayor portal técnico en español para instaladores y profesionales, basado en:
+
+- Comparativas
+- Productos
+- Guías
+- Marcas
+- Herramientas
+- SEO
+- Marketing de afiliación
+- IA (futuro)
+
+---
+
+# Estado técnico
+
+## Infraestructura
+
+✅ Next.js
+
+✅ TypeScript
+
+✅ TailwindCSS
+
+✅ Git
+
+✅ GitHub
+
+✅ Arquitectura consolidada
+
+---
+
+## Componentes creados
 
 ### Home
 
-La Home está compuesta por:
+- Hero
+- Categories
+- FeaturedProducts
+- FeaturedComparisons
+- Brands
+- Advantages
+- SearchBar
 
--   Hero
--   SearchBar
--   Categories
--   FeaturedProducts
--   FeaturedComparisons
--   Brands
--   Advantages
+### Common
 
-Componentes adicionales existentes: - Newsletter - LatestArticles
+- PageHeader
 
-### Categorías existentes
+### Category
 
--   Electricidad
--   Telecomunicaciones
--   Fotovoltaica
--   Herramientas
--   Instrumentación
--   Seguridad
+- CategoryIntro
+- SubcategoryGrid
 
-### Datos
+### Product
 
-Existe un directorio `data/` con información estructurada, incluyendo:
+- ProductHeader
+- ProductAffiliateButtons
+- ProductSpecifications
+- ProductProsCons
+- ProductBreadcrumb
+- ProductCTA
+- ProductRelated
 
--   categories.ts
--   featured-products.ts
--   comparisons.ts
--   brands.ts
--   menu.ts
--   navigation.ts
+---
 
-## Observaciones de arquitectura
+## Datos
 
--   Existe una duplicación de datos de categorías:
-    -   `components/home/Categories.tsx` contiene un array local.
-    -   `data/categories.ts` contiene la fuente de datos estructurada.
+data/
 
-**Próxima mejora recomendada:** hacer que `Categories.tsx` consuma
-`data/categories.ts` para mantener una única fuente de verdad.
+- brands.ts
+- categories.ts
+- comparisons.ts
+- electricidad.ts
+- featured-products.ts
+- menu.ts
+- navigation.ts
+- products.ts
+- stores.ts
+- testimonials.ts
 
-## Sprint actual
+---
 
-Estado: Auditoría y consolidación.
+## Tipos
 
-Objetivos:
+types/
 
-1.  Eliminar duplicaciones.
-2.  Reutilizar datos desde `data/`.
-3.  Consolidar la navegación.
-4.  Revisar Hero y llamadas a la acción.
-5.  Preparar las páginas de categorías para contenido real.
+- article.ts
+- brand.ts
+- category.ts
+- product.ts
 
-## Próximos sprints
+---
 
-### Sprint 3
+## Librerías
 
--   Sistema de categorías dinámicas.
--   Tarjetas enlazadas.
--   Breadcrumbs.
+lib/
 
-### Sprint 4
+- products.ts
+- categories.ts
+- seo.ts
 
--   Fichas de productos.
--   Comparativas.
--   Marcas.
+---
 
-### Sprint 5
+## Rutas creadas
 
--   SEO.
--   Optimización.
--   Rendimiento.
--   Despliegue.
+/
 
-## Convención de trabajo
+/electricidad
 
-Para cada sprint:
+/electricidad/[slug]
 
-1.  Auditoría.
-2.  Objetivo.
-3.  Desarrollo.
-4.  Pruebas.
-5.  Commit.
-6.  Push a GitHub.
+/productos/[slug]
+
+---
+
+# Arquitectura
+
+Se adopta oficialmente la siguiente arquitectura:
+
+Datos
+
+↓
+
+Lógica (lib)
+
+↓
+
+Componentes
+
+↓
+
+Páginas
+
+---
+
+# Decisiones de arquitectura
+
+1. Trabajar por funcionalidades completas.
+
+2. No realizar refactorizaciones grandes durante un sprint.
+
+3. Reutilizar siempre componentes existentes.
+
+4. Antes de crear un archivo comprobar si ya existe.
+
+5. Mantener separación clara entre:
+
+- Datos
+- Tipos
+- Lógica
+- Componentes
+- Páginas
+
+---
+
+# Metodología oficial
+
+Cada Sprint tendrá:
+
+## Objetivo técnico
+
+Una funcionalidad completamente terminada.
+
+## Objetivo de negocio
+
+Que esa funcionalidad acerque ElectroSpainPro a la rentabilidad.
+
+---
+
+# Sprint actual
+
+## Sprint 3
+
+Motor de Productos
+
+Estado:
+
+✅ Arquitectura
+
+✅ Modelos
+
+✅ Componentes principales
+
+✅ Página dinámica
+
+Pendiente:
+
+- Integración visual completa
+- Productos relacionados reales
+- CTA funcional
+- SEO del producto
+- Imágenes
+- Enlaces de afiliados reales
+
+---
+
+# Próximo Sprint
+
+Motor de Comparativas
+
+---
+
+# Modelo de negocio
+
+Fuentes de ingresos previstas:
+
+1. Marketing de afiliación
+
+2. SEO
+
+3. Comparativas
+
+4. Guías
+
+5. Newsletter
+
+6. YouTube
+
+7. Herramientas gratuitas
+
+8. IA
+
+9. Colaboraciones con fabricantes
+
+10. Área Premium (futuro)
+
+---
+
+# Documentación
+
+docs/
+
+- MASTER.md
+- ROADMAP.md
+- DECISIONS.md
+- BRAND.md
+- CONTENT_STRATEGY.md
+
+---
+
+# Filosofía del proyecto
+
+No construiremos la web más grande.
+
+Construiremos la más útil.
+
+Primero aportaremos valor.
+
+Después llegará la monetización.
+
+---
+
+# Objetivo a largo plazo
+
+Convertir ElectroSpainPro en la plataforma de referencia para profesionales de habla hispana.
