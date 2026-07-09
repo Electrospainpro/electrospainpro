@@ -1,15 +1,34 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+
 import Button from "@/components/ui/Button";
 
 export default function SearchBar() {
+  const router = useRouter();
+
   const [query, setQuery] = useState("");
 
   function handleSearch() {
-    if (!query.trim()) return;
+    const value = query.trim();
 
-    alert(`En el futuro buscaremos: ${query}`);
+    if (!value) {
+      router.push("/productos");
+      return;
+    }
+
+    router.push(
+      `/productos?q=${encodeURIComponent(value)}`
+    );
+  }
+
+  function handleKeyDown(
+    event: React.KeyboardEvent<HTMLInputElement>
+  ) {
+    if (event.key === "Enter") {
+      handleSearch();
+    }
   }
 
   return (
@@ -20,7 +39,8 @@ export default function SearchBar() {
           placeholder="Busca productos, marcas o comparativas..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="flex-1 rounded-xl border px-5 py-3"
+          onKeyDown={handleKeyDown}
+          className="flex-1 rounded-xl border border-gray-300 px-5 py-3 outline-none focus:border-blue-600"
         />
 
         <Button onClick={handleSearch}>

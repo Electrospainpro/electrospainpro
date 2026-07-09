@@ -21,3 +21,9 @@ export function getProductsBySubcategory(subcategory: string) {
     (product) => product.subcategory === subcategory
   );
 }
+
+export function getProductsByBrand(brand: string) {
+  return products.filter(
+    (product) => product.brand === brand
+  );
+}
