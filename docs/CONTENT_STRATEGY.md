@@ -182,3 +182,18 @@ Objetivo:
 # Objetivo a largo plazo
 
 Convertir ElectroSpainPro en la plataforma de referencia para los profesionales de habla hispana.
+# ElectroSpainPro Content Strategy
+
+## Objetivos
+
+- Crear el mayor centro de conocimiento para profesionales de la electricidad, telecomunicaciones y energía solar.
+
+## Tipos de contenido
+
+- Productos
+- Comparativas
+- Guías
+- Herramientas
+- Noticias
+
+## Pendiente...

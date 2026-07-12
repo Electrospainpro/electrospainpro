@@ -26,6 +26,41 @@ export interface ProductESPScore {
   overall: number;
 }
 
+/**
+ * Distintivos editoriales.
+ * Se utilizarán en el catálogo y comparativas.
+ */
+export interface ProductBadge {
+  label: string;
+}
+
+/**
+ * Productos relacionados.
+ * De momento utilizaremos slugs.
+ */
+export interface ProductRelations {
+  compatible?: string[];
+
+  alternatives?: string[];
+
+  accessories?: string[];
+
+  guides?: string[];
+
+  comparisons?: string[];
+}
+
+/**
+ * Información SEO.
+ */
+export interface ProductSEO {
+  metaTitle?: string;
+
+  metaDescription?: string;
+
+  keywords?: string[];
+}
+
 export interface Product {
   id: number;
 
@@ -58,8 +93,22 @@ export interface Product {
   specifications: ProductSpecification[];
 
   /**
-   * Sistema de valoración propio de ElectroSpainPro.
-   * De momento es opcional para no romper los productos existentes.
+   * Sistema de valoración ElectroSpainPro.
    */
   espScore?: ProductESPScore;
+
+  /**
+   * Distintivos editoriales.
+   */
+  badges?: ProductBadge[];
+
+  /**
+   * Relaciones entre productos.
+   */
+  relations?: ProductRelations;
+
+  /**
+   * Información SEO.
+   */
+  seo?: ProductSEO;
 }

@@ -1,16 +1,14 @@
-export interface CatalogFilters {
-  search: string;
+import { Product } from "./product";
+import { Brand } from "./brand";
+import { Comparison } from "./comparison";
+import { Guide } from "./guide";
 
-  category: string;
+export interface Catalog {
+  products: Product[];
 
-  subcategory: string;
+  brands: Brand[];
 
-  brand: string;
+  comparisons: Comparison[];
 
-  sort:
-    | "featured"
-    | "rating"
-    | "price-asc"
-    | "price-desc"
-    | "name";
+  guides: Guide[];
 }

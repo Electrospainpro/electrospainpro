@@ -1,0 +1,5 @@
+# ElectroSpainPro Taxonomy
+
+## Categorías
+
+Pendiente...

@@ -4,7 +4,17 @@ import CatalogPage from "@/components/catalog/CatalogPage";
 
 import { products } from "@/data/products";
 
-export default function ProductsPage() {
+interface ProductsPageProps {
+  searchParams: Promise<{
+    q?: string;
+  }>;
+}
+
+export default async function ProductsPage({
+  searchParams,
+}: ProductsPageProps) {
+  const params = await searchParams;
+
   return (
     <Container className="py-12">
       <PageHeader
@@ -14,6 +24,7 @@ export default function ProductsPage() {
 
       <CatalogPage
         products={products}
+        initialSearch={params.q ?? ""}
       />
     </Container>
   );

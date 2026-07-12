@@ -275,3 +275,34 @@ Después llegará la monetización.
 # Objetivo a largo plazo
 
 Convertir ElectroSpainPro en la plataforma de referencia para profesionales de habla hispana.
+# Sprint 9
+
+## Estado
+
+### Catálogo
+- Catálogo modularizado.
+- Buscador preparado.
+- Sidebar creada.
+- Toolbar creada.
+- Grid reutilizable.
+- Cards reutilizables.
+
+### Marcas
+- Página dinámica.
+- Relación automática entre marcas y productos.
+
+### Arquitectura
+- Inicio del ESP Data Engine.
+- Nuevos tipos para búsquedas.
+- Base preparada para filtros y comparador.
+
+## Próximo Sprint
+
+- ESP Search Engine v1.
+- Lectura del parámetro ?q=
+- Filtros por marca.
+- Filtros por categoría.
+- Filtros por subcategoría.
+# Sprint 10
+
+En desarrollo...

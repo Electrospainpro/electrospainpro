@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import CatalogToolbar from "./CatalogToolbar";
 import CatalogSidebar from "./CatalogSidebar";
@@ -10,12 +10,18 @@ import { Product } from "@/types/product";
 
 interface CatalogPageProps {
   products: Product[];
+  initialSearch?: string;
 }
 
 export default function CatalogPage({
   products,
+  initialSearch = "",
 }: CatalogPageProps) {
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(initialSearch);
+
+  useEffect(() => {
+    setSearch(initialSearch);
+  }, [initialSearch]);
 
   const filteredProducts = useMemo(() => {
     const query = search.toLowerCase().trim();

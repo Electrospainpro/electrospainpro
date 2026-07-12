@@ -1,3 +1,11 @@
+import { Product } from "./product";
+
+export interface ComparisonCriterion {
+  label: string;
+
+  winner?: string;
+}
+
 export interface Comparison {
   id: number;
 
@@ -7,11 +15,13 @@ export interface Comparison {
 
   category: string;
 
-  products: string[];
+  summary: string;
+
+  products: Product[];
+
+  criteria: ComparisonCriterion[];
 
   winner?: string;
-
-  summary: string;
 
   publishedAt: string;
 }
