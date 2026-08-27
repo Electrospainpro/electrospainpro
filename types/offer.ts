@@ -1,6 +1,5 @@
 /**
- * Tiendas / marketplaces donde ElectroSpainPro
- * puede encontrar una oferta de un producto.
+ * Tiendas / marketplaces.
  */
 export type Merchant =
   | "amazon"
@@ -11,7 +10,7 @@ export type Merchant =
   | "farnell";
 
 /**
- * Estado de una oferta dentro del Data Engine.
+ * Estado de la oferta.
  */
 export type OfferStatus =
   | "pending"
@@ -19,36 +18,37 @@ export type OfferStatus =
   | "inactive";
 
 /**
+ * Tratamiento fiscal del precio.
+ */
+export type PriceTaxStatus =
+  | "included"
+  | "excluded"
+  | "unknown";
+
+/**
  * Oferta comercial de un producto.
- *
- * La relación con el producto se realiza mediante
- * productId, que corresponde al Product_ID del
- * catálogo maestro.
  */
 export interface ProductOffer {
   /**
    * Identificador único de la oferta.
-   *
-   * Ejemplo:
-   * O-P001-AMAZON
    */
   id: string;
 
   /**
-   * Identificador del producto del catálogo.
+   * Producto del catálogo.
    *
    * Ejemplo:
-   * P001
+   * P004
    */
   productId: string;
 
   /**
-   * Tienda o marketplace.
+   * Merchant.
    */
   merchant: Merchant;
 
   /**
-   * Referencia / SKU del producto en la tienda.
+   * SKU / referencia de la tienda.
    */
   sku?: string;
 
@@ -58,19 +58,37 @@ export interface ProductOffer {
   mpn?: string;
 
   /**
-   * Código EAN / GTIN.
+   * EAN / GTIN.
    */
   ean?: string;
 
   /**
-   * Precio del producto en euros.
+   * Precio publicado por el merchant.
    */
   price?: number;
 
   /**
-   * Coste de envío en euros.
+   * Indica si el precio incluye impuestos.
+   */
+  priceTaxStatus?: PriceTaxStatus;
+
+  /**
+   * Tipo impositivo indicado por el merchant.
+   *
+   * Ejemplo:
+   * 21 para IVA 21 %.
+   */
+  taxRate?: number;
+
+  /**
+   * Gastos de envío.
    */
   shippingCost?: number;
+
+  /**
+   * Estado fiscal del gasto de envío.
+   */
+  shippingTaxStatus?: PriceTaxStatus;
 
   /**
    * Moneda.
@@ -78,43 +96,32 @@ export interface ProductOffer {
   currency: "EUR";
 
   /**
-   * Disponibilidad.
+   * Stock.
    */
   inStock?: boolean;
 
   /**
    * Información de entrega.
-   *
-   * Ejemplo:
-   * "24/48 h"
    */
   delivery?: string;
 
   /**
-   * URL normal del producto.
+   * URL normal.
    */
   productUrl: string;
 
   /**
-   * URL utilizada para afiliación.
+   * URL de afiliación.
    */
   affiliateUrl?: string;
 
   /**
-   * Comisión estimada o registrada.
-   *
-   * Se expresa como porcentaje.
-   *
-   * Ejemplo:
-   * 3.5 = 3,5 %
+   * Comisión de afiliación.
    */
   commission?: number;
 
   /**
-   * Fecha de última comprobación.
-   *
-   * Formato:
-   * YYYY-MM-DD
+   * Fecha de comprobación.
    */
   checkedAt?: string;
 
@@ -124,7 +131,7 @@ export interface ProductOffer {
   status: OfferStatus;
 
   /**
-   * Fuente utilizada para verificar la oferta.
+   * Fuente utilizada para comprobarla.
    */
   source?: string;
 }

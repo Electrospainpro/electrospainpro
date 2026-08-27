@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import type { ProductOffer } from "@/types/offer";
 
 interface ProductOffersProps {
@@ -15,70 +13,98 @@ const merchantNames: Record<ProductOffer["merchant"], string> = {
   farnell: "Farnell",
 };
 
-function formatPrice(price?: number) {
-  if (price === undefined) {
+function formatCurrency(value?: number) {
+  if (value === undefined) {
     return "Precio pendiente";
   }
 
   return new Intl.NumberFormat("es-ES", {
     style: "currency",
     currency: "EUR",
-  }).format(price);
+  }).format(value);
 }
 
-function formatTotalPrice(offer: ProductOffer) {
+function getTaxLabel(offer: ProductOffer) {
+  if (offer.priceTaxStatus === "included") {
+    return "IVA incluido";
+  }
+
+  if (offer.priceTaxStatus === "excluded") {
+    if (offer.taxRate !== undefined) {
+      return `Impuestos no incluidos · ${offer.taxRate}%`;
+    }
+
+    return "Impuestos no incluidos";
+  }
+
+  return "Impuestos no especificados";
+}
+
+function getOfferTotal(offer: ProductOffer) {
   if (offer.price === undefined) {
-    return "Precio pendiente";
+    return undefined;
   }
 
-  const total =
-    offer.price + (offer.shippingCost ?? 0);
-
-  return new Intl.NumberFormat("es-ES", {
-    style: "currency",
-    currency: "EUR",
-  }).format(total);
+  return offer.price + (offer.shippingCost ?? 0);
 }
 
-function getOfferLabel(offer: ProductOffer) {
-  if (offer.status === "verified") {
-    return offer.inStock === false
-      ? "No disponible"
-      : "Oferta verificada";
+function getComparablePrice(offer: ProductOffer) {
+  const total = getOfferTotal(offer);
+
+  if (total === undefined) {
+    return undefined;
   }
 
+  /*
+   * Solo podemos comparar directamente precios
+   * cuando conocemos su tratamiento fiscal.
+   *
+   * No convertimos automáticamente precios sin impuestos
+   * porque la fiscalidad final puede depender del destino.
+   */
+  if (offer.priceTaxStatus !== "included") {
+    return undefined;
+  }
+
+  return total;
+}
+
+function getOfferStatusLabel(offer: ProductOffer) {
   if (offer.status === "pending") {
     return "Pendiente de verificación";
   }
 
-  return "Oferta no disponible";
+  if (offer.status === "inactive") {
+    return "No disponible";
+  }
+
+  if (offer.inStock === false) {
+    return "Sin stock";
+  }
+
+  return "Oferta verificada";
 }
 
 export default function ProductOffers({
   offers,
 }: ProductOffersProps) {
-  const validOffers = offers.filter(
+  const visibleOffers = offers.filter(
     (offer) => offer.status !== "inactive"
   );
 
-  const pricedOffers = validOffers.filter(
-    (offer) => offer.price !== undefined
-  );
+  const comparableOffers = visibleOffers
+    .filter(
+      (offer) =>
+        getComparablePrice(offer) !== undefined
+    )
+    .sort(
+      (a, b) =>
+        (getComparablePrice(a) ?? Infinity) -
+        (getComparablePrice(b) ?? Infinity)
+    );
 
-  const bestOffer =
-    pricedOffers.length > 0
-      ? [...pricedOffers].sort((a, b) => {
-          const totalA =
-            (a.price ?? 0) +
-            (a.shippingCost ?? 0);
-
-          const totalB =
-            (b.price ?? 0) +
-            (b.shippingCost ?? 0);
-
-          return totalA - totalB;
-        })[0]
-      : undefined;
+  const bestComparableOffer =
+    comparableOffers[0];
 
   return (
     <section className="mt-12">
@@ -93,38 +119,43 @@ export default function ProductOffers({
         </p>
       </div>
 
-      {validOffers.length === 0 ? (
+      {visibleOffers.length === 0 ? (
         <div className="rounded-2xl border bg-gray-50 p-6">
           <h3 className="text-lg font-semibold">
             Estamos recopilando ofertas
           </h3>
 
           <p className="mt-2 text-gray-600">
-            Todavía no disponemos de ofertas comerciales
-            verificadas para este producto. Estamos
-            incorporando progresivamente tiendas y
-            marketplaces al comparador.
+            Todavía no disponemos de ofertas
+            comerciales verificadas para este producto.
+            Estamos incorporando progresivamente tiendas
+            y marketplaces al comparador.
           </p>
         </div>
       ) : (
         <div className="space-y-4">
-          {validOffers.map((offer) => {
+          {visibleOffers.map((offer) => {
+            const total =
+              getOfferTotal(offer);
+
             const isBest =
-              bestOffer?.id === offer.id;
+              bestComparableOffer?.id ===
+              offer.id;
 
             const clickUrl =
               offer.affiliateUrl ??
               offer.productUrl;
 
-            const hasValidUrl =
+            const canVisit =
+              offer.status === "verified" &&
               clickUrl.trim().length > 0;
 
             return (
-              <div
+              <article
                 key={offer.id}
                 className={`rounded-2xl border bg-white p-6 shadow-sm ${
                   isBest
-                    ? "border-blue-600"
+                    ? "border-blue-600 ring-1 ring-blue-600"
                     : ""
                 }`}
               >
@@ -132,63 +163,108 @@ export default function ProductOffers({
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
                       <h3 className="text-xl font-bold">
-                        {merchantNames[offer.merchant]}
+                        {
+                          merchantNames[
+                            offer.merchant
+                          ]
+                        }
                       </h3>
 
                       {isBest && (
                         <span className="rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold text-white">
-                          Mejor oferta
+                          Mejor precio comparable
                         </span>
                       )}
                     </div>
 
                     <p className="mt-2 text-sm text-gray-500">
-                      {getOfferLabel(offer)}
+                      {getOfferStatusLabel(
+                        offer
+                      )}
                     </p>
 
-                    {offer.delivery && (
+                    {offer.sku && (
                       <p className="mt-2 text-sm text-gray-600">
-                        Entrega: {offer.delivery}
+                        Referencia tienda:{" "}
+                        {offer.sku}
                       </p>
                     )}
 
-                    {offer.shippingCost !== undefined && (
+                    {offer.delivery && (
+                      <p className="mt-1 text-sm text-gray-600">
+                        Entrega:{" "}
+                        {offer.delivery}
+                      </p>
+                    )}
+
+                    {offer.shippingCost !==
+                      undefined && (
                       <p className="mt-1 text-sm text-gray-600">
                         Envío:{" "}
-                        {formatPrice(
+                        {formatCurrency(
                           offer.shippingCost
                         )}
+                      </p>
+                    )}
+
+                    {offer.checkedAt && (
+                      <p className="mt-1 text-xs text-gray-400">
+                        Comprobado:{" "}
+                        {offer.checkedAt}
                       </p>
                     )}
                   </div>
 
                   <div className="flex flex-col items-start md:items-end">
                     <span className="text-sm text-gray-500">
-                      Precio total
+                      Precio publicado
                     </span>
 
                     <span className="text-2xl font-bold">
-                      {formatTotalPrice(offer)}
+                      {formatCurrency(
+                        offer.price
+                      )}
                     </span>
 
-                    {hasValidUrl &&
-                      offer.status === "verified" && (
-                        <Link
-                          href={clickUrl}
-                          target="_blank"
-                          rel="nofollow sponsored noopener"
-                          className="mt-3 rounded-xl bg-black px-5 py-3 font-semibold text-white transition hover:opacity-80"
-                        >
-                          Ver oferta
-                        </Link>
+                    <span className="mt-1 text-xs text-gray-500">
+                      {getTaxLabel(offer)}
+                    </span>
+
+                    {offer.shippingCost !==
+                      undefined &&
+                      total !== undefined && (
+                        <span className="mt-1 text-xs text-gray-500">
+                          Total antes de
+                          impuestos:{" "}
+                          {formatCurrency(
+                            total
+                          )}
+                        </span>
                       )}
+
+                    {canVisit && (
+                      <a
+                        href={clickUrl}
+                        target="_blank"
+                        rel="nofollow sponsored noopener"
+                        className="mt-3 rounded-xl bg-black px-5 py-3 font-semibold text-white transition hover:opacity-80"
+                      >
+                        Ver oferta
+                      </a>
+                    )}
                   </div>
                 </div>
-              </div>
+              </article>
             );
           })}
         </div>
       )}
+
+      <p className="mt-4 text-xs text-gray-400">
+        Los precios y la disponibilidad pueden cambiar.
+        ElectroSpainPro muestra los datos disponibles en
+        la última comprobación registrada.
+      </p>
     </section>
   );
 }
