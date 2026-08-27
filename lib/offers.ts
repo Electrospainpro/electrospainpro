@@ -1,28 +1,95 @@
-import type { ProductOffer } from "@/types/offer";
+import { offers } from "@/data/offers";
+
+import type {
+  Merchant,
+  ProductOffer,
+} from "@/types/offer";
 
 /**
- * Devuelve únicamente las ofertas disponibles.
+ * Devuelve todas las ofertas.
  */
-export function getAvailableOffers(
-  offers: ProductOffer[] = []
-): ProductOffer[] {
-  return offers.filter((offer) => offer.inStock !== false);
+export function getAllOffers(): ProductOffer[] {
+  return offers;
 }
 
 /**
- * Devuelve las ofertas pertenecientes a una tienda concreta.
+ * Devuelve todas las ofertas asociadas a un producto.
+ *
+ * Ejemplo:
+ * getOffersByProduct("P001")
+ */
+export function getOffersByProduct(
+  productId: string
+): ProductOffer[] {
+  return offers.filter(
+    (offer) => offer.productId === productId
+  );
+}
+
+/**
+ * Devuelve las ofertas de un producto
+ * pertenecientes a una tienda concreta.
+ */
+export function getOffersByProductAndMerchant(
+  productId: string,
+  merchant: Merchant
+): ProductOffer[] {
+  return offers.filter(
+    (offer) =>
+      offer.productId === productId &&
+      offer.merchant === merchant
+  );
+}
+
+/**
+ * Devuelve todas las ofertas de una tienda.
  */
 export function getOffersByMerchant(
-  offers: ProductOffer[] = [],
-  merchant: ProductOffer["merchant"]
+  merchant: Merchant
 ): ProductOffer[] {
-  return offers.filter((offer) => offer.merchant === merchant);
+  return offers.filter(
+    (offer) => offer.merchant === merchant
+  );
 }
 
 /**
- * Calcula el coste total estimado de una oferta.
+ * Devuelve ofertas verificadas.
+ */
+export function getVerifiedOffers(): ProductOffer[] {
+  return offers.filter(
+    (offer) => offer.status === "verified"
+  );
+}
+
+/**
+ * Devuelve ofertas verificadas y disponibles.
+ */
+export function getAvailableOffers(): ProductOffer[] {
+  return offers.filter(
+    (offer) =>
+      offer.status === "verified" &&
+      offer.inStock !== false
+  );
+}
+
+/**
+ * Devuelve ofertas de un producto que tienen
+ * precio disponible.
+ */
+export function getPricedOffersByProduct(
+  productId: string
+): ProductOffer[] {
+  return getOffersByProduct(productId).filter(
+    (offer) =>
+      offer.price !== undefined &&
+      offer.status === "verified"
+  );
+}
+
+/**
+ * Calcula el coste total de una oferta.
  *
- * Si no existe coste de envío, se considera 0 €.
+ * Precio + envío.
  */
 export function getOfferTotalPrice(
   offer: ProductOffer
@@ -31,72 +98,94 @@ export function getOfferTotalPrice(
     return undefined;
   }
 
-  return offer.price + (offer.shippingCost ?? 0);
-}
-
-/**
- * Devuelve la oferta con el menor coste total.
- *
- * Las ofertas sin precio no se tienen en cuenta.
- */
-export function getBestOffer(
-  offers: ProductOffer[] = []
-): ProductOffer | undefined {
-  const availableOffers = getAvailableOffers(offers).filter(
-    (offer) => getOfferTotalPrice(offer) !== undefined
+  return (
+    offer.price +
+    (offer.shippingCost ?? 0)
   );
-
-  if (availableOffers.length === 0) {
-    return undefined;
-  }
-
-  return availableOffers.reduce((best, current) => {
-    const bestPrice = getOfferTotalPrice(best)!;
-    const currentPrice = getOfferTotalPrice(current)!;
-
-    return currentPrice < bestPrice ? current : best;
-  });
 }
 
 /**
- * Devuelve el precio más bajo disponible.
- */
-export function getBestPrice(
-  offers: ProductOffer[] = []
-): number | undefined {
-  const bestOffer = getBestOffer(offers);
-
-  if (!bestOffer) {
-    return undefined;
-  }
-
-  return getOfferTotalPrice(bestOffer);
-}
-
-/**
- * Ordena las ofertas desde la más barata hasta la más cara.
+ * Devuelve la oferta más barata de un producto.
  *
- * Las ofertas sin precio quedan al final.
+ * Solo considera ofertas verificadas con precio.
  */
-export function sortOffersByPrice(
-  offers: ProductOffer[] = []
+export function getBestOfferForProduct(
+  productId: string
+): ProductOffer | undefined {
+  const productOffers =
+    getPricedOffersByProduct(productId);
+
+  if (productOffers.length === 0) {
+    return undefined;
+  }
+
+  return productOffers.reduce(
+    (best, current) => {
+      const bestTotal =
+        getOfferTotalPrice(best);
+
+      const currentTotal =
+        getOfferTotalPrice(current);
+
+      if (
+        bestTotal === undefined ||
+        currentTotal === undefined
+      ) {
+        return best;
+      }
+
+      return currentTotal < bestTotal
+        ? current
+        : best;
+    }
+  );
+}
+
+/**
+ * Devuelve las ofertas de un producto ordenadas
+ * de menor a mayor coste total.
+ */
+export function getOffersSortedByPrice(
+  productId: string
 ): ProductOffer[] {
-  return [...offers].sort((a, b) => {
-    const priceA = getOfferTotalPrice(a);
-    const priceB = getOfferTotalPrice(b);
+  return [...getPricedOffersByProduct(productId)].sort(
+    (a, b) => {
+      const priceA =
+        getOfferTotalPrice(a) ?? Number.POSITIVE_INFINITY;
 
-    if (priceA === undefined && priceB === undefined) {
-      return 0;
+      const priceB =
+        getOfferTotalPrice(b) ?? Number.POSITIVE_INFINITY;
+
+      return priceA - priceB;
     }
+  );
+}
 
-    if (priceA === undefined) {
-      return 1;
-    }
+/**
+ * Devuelve la URL que debemos utilizar para
+ * enviar al usuario a comprar.
+ *
+ * Si existe URL de afiliación utilizamos esa.
+ * En caso contrario utilizamos la URL normal.
+ */
+export function getOfferClickUrl(
+  offer: ProductOffer
+): string {
+  return (
+    offer.affiliateUrl ??
+    offer.productUrl
+  );
+}
 
-    if (priceB === undefined) {
-      return -1;
-    }
-
-    return priceA - priceB;
-  });
+/**
+ * Devuelve si una oferta puede mostrarse
+ * como oferta comercial válida.
+ */
+export function isOfferPublishable(
+  offer: ProductOffer
+): boolean {
+  return (
+    offer.status === "verified" &&
+    offer.productUrl.trim().length > 0
+  );
 }

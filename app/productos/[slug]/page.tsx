@@ -9,8 +9,10 @@ import ProductSpecifications from "@/components/product/ProductSpecifications";
 import ProductProsCons from "@/components/product/ProductProsCons";
 import ProductRelated from "@/components/product/ProductRelated";
 import ProductCTA from "@/components/product/ProductCTA";
+import ProductOffers from "@/components/product/ProductOffers";
 
 import { getProductBySlug } from "@/lib/products";
+import { getOffersByProduct } from "@/lib/offers";
 
 interface PageProps {
   params: Promise<{
@@ -29,6 +31,15 @@ export default async function ProductPage({
     notFound();
   }
 
+  /*
+   * Sistema antiguo de afiliación.
+   *
+   * Lo mantenemos temporalmente para no romper
+   * compatibilidad con los componentes existentes.
+   *
+   * El nuevo sistema de ofertas será el encargado
+   * progresivamente de sustituirlo.
+   */
   const affiliateLinks = [];
 
   if (product.affiliateLinks.amazon) {
@@ -65,6 +76,16 @@ export default async function ProductPage({
       url: product.affiliateLinks.leroymerlin,
     });
   }
+
+  /*
+   * Nuevo motor de ofertas.
+   *
+   * Las ofertas se relacionan mediante catalogId:
+   * P001, P002, P003...
+   */
+  const productOffers = getOffersByProduct(
+    product.catalogId
+  );
 
   return (
     <main className="mx-auto max-w-7xl px-6 py-12">
@@ -103,6 +124,10 @@ export default async function ProductPage({
       <ProductProsCons
         pros={product.pros}
         cons={product.cons}
+      />
+
+      <ProductOffers
+        offers={productOffers}
       />
 
       <ProductRelated
