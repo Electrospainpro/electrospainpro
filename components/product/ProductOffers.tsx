@@ -11,6 +11,7 @@ const merchantNames: Record<ProductOffer["merchant"], string> = {
   leroymerlin: "Leroy Merlin",
   rs: "RS",
   farnell: "Farnell",
+  latiendadeelectricidad: "La Tienda de Electricidad",
 };
 
 function formatCurrency(value?: number) {
@@ -56,11 +57,8 @@ function getComparablePrice(offer: ProductOffer) {
   }
 
   /*
-   * Solo podemos comparar directamente precios
-   * cuando conocemos su tratamiento fiscal.
-   *
-   * No convertimos automáticamente precios sin impuestos
-   * porque la fiscalidad final puede depender del destino.
+   * Solo comparamos directamente ofertas cuyo precio
+   * está confirmado como impuestos incluidos.
    */
   if (offer.priceTaxStatus !== "included") {
     return undefined;
@@ -135,12 +133,10 @@ export default function ProductOffers({
       ) : (
         <div className="space-y-4">
           {visibleOffers.map((offer) => {
-            const total =
-              getOfferTotal(offer);
+            const total = getOfferTotal(offer);
 
             const isBest =
-              bestComparableOffer?.id ===
-              offer.id;
+              bestComparableOffer?.id === offer.id;
 
             const clickUrl =
               offer.affiliateUrl ??
@@ -163,11 +159,7 @@ export default function ProductOffers({
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
                       <h3 className="text-xl font-bold">
-                        {
-                          merchantNames[
-                            offer.merchant
-                          ]
-                        }
+                        {merchantNames[offer.merchant]}
                       </h3>
 
                       {isBest && (
@@ -178,27 +170,22 @@ export default function ProductOffers({
                     </div>
 
                     <p className="mt-2 text-sm text-gray-500">
-                      {getOfferStatusLabel(
-                        offer
-                      )}
+                      {getOfferStatusLabel(offer)}
                     </p>
 
                     {offer.sku && (
                       <p className="mt-2 text-sm text-gray-600">
-                        Referencia tienda:{" "}
-                        {offer.sku}
+                        Referencia tienda: {offer.sku}
                       </p>
                     )}
 
                     {offer.delivery && (
                       <p className="mt-1 text-sm text-gray-600">
-                        Entrega:{" "}
-                        {offer.delivery}
+                        Entrega: {offer.delivery}
                       </p>
                     )}
 
-                    {offer.shippingCost !==
-                      undefined && (
+                    {offer.shippingCost !== undefined && (
                       <p className="mt-1 text-sm text-gray-600">
                         Envío:{" "}
                         {formatCurrency(
@@ -209,8 +196,7 @@ export default function ProductOffers({
 
                     {offer.checkedAt && (
                       <p className="mt-1 text-xs text-gray-400">
-                        Comprobado:{" "}
-                        {offer.checkedAt}
+                        Comprobado: {offer.checkedAt}
                       </p>
                     )}
                   </div>
@@ -221,24 +207,18 @@ export default function ProductOffers({
                     </span>
 
                     <span className="text-2xl font-bold">
-                      {formatCurrency(
-                        offer.price
-                      )}
+                      {formatCurrency(offer.price)}
                     </span>
 
                     <span className="mt-1 text-xs text-gray-500">
                       {getTaxLabel(offer)}
                     </span>
 
-                    {offer.shippingCost !==
-                      undefined &&
+                    {offer.shippingCost !== undefined &&
                       total !== undefined && (
                         <span className="mt-1 text-xs text-gray-500">
-                          Total antes de
-                          impuestos:{" "}
-                          {formatCurrency(
-                            total
-                          )}
+                          Total antes de impuestos:{" "}
+                          {formatCurrency(total)}
                         </span>
                       )}
 

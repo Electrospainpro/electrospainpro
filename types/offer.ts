@@ -1,5 +1,18 @@
 /**
- * Tiendas / marketplaces.
+ * Tipo de relación comercial que ElectroSpainPro
+ * puede tener con un merchant.
+ */
+export type MerchantType =
+  | "affiliate"
+  | "commercial"
+  | "no_program"
+  | "unknown";
+
+/**
+ * Tiendas y marketplaces disponibles.
+ *
+ * El identificador debe mantenerse estable porque
+ * se utilizará en ofertas, estadísticas y enlaces.
  */
 export type Merchant =
   | "amazon"
@@ -7,10 +20,11 @@ export type Merchant =
   | "manomano"
   | "leroymerlin"
   | "rs"
-  | "farnell";
+  | "farnell"
+  | "latiendadeelectricidad";
 
 /**
- * Estado de la oferta.
+ * Estado de una oferta.
  */
 export type OfferStatus =
   | "pending"
@@ -35,20 +49,20 @@ export interface ProductOffer {
   id: string;
 
   /**
-   * Producto del catálogo.
+   * Identificador del producto del catálogo.
    *
    * Ejemplo:
-   * P004
+   * P002
    */
   productId: string;
 
   /**
-   * Merchant.
+   * Merchant donde se encuentra la oferta.
    */
   merchant: Merchant;
 
   /**
-   * SKU / referencia de la tienda.
+   * SKU / referencia interna de la tienda.
    */
   sku?: string;
 
@@ -63,7 +77,7 @@ export interface ProductOffer {
   ean?: string;
 
   /**
-   * Precio publicado por el merchant.
+   * Precio publicado.
    */
   price?: number;
 
@@ -73,10 +87,7 @@ export interface ProductOffer {
   priceTaxStatus?: PriceTaxStatus;
 
   /**
-   * Tipo impositivo indicado por el merchant.
-   *
-   * Ejemplo:
-   * 21 para IVA 21 %.
+   * Tipo impositivo aplicable al precio publicado.
    */
   taxRate?: number;
 
@@ -86,7 +97,7 @@ export interface ProductOffer {
   shippingCost?: number;
 
   /**
-   * Estado fiscal del gasto de envío.
+   * Tratamiento fiscal del envío.
    */
   shippingTaxStatus?: PriceTaxStatus;
 
@@ -96,7 +107,7 @@ export interface ProductOffer {
   currency: "EUR";
 
   /**
-   * Stock.
+   * Disponibilidad.
    */
   inStock?: boolean;
 
@@ -106,17 +117,20 @@ export interface ProductOffer {
   delivery?: string;
 
   /**
-   * URL normal.
+   * URL pública del producto.
    */
   productUrl: string;
 
   /**
    * URL de afiliación.
+   *
+   * Puede permanecer vacía hasta disponer
+   * de un programa de afiliación válido.
    */
   affiliateUrl?: string;
 
   /**
-   * Comisión de afiliación.
+   * Comisión estimada o conocida.
    */
   commission?: number;
 
@@ -131,7 +145,28 @@ export interface ProductOffer {
   status: OfferStatus;
 
   /**
-   * Fuente utilizada para comprobarla.
+   * Fuente utilizada para verificar los datos.
    */
   source?: string;
+}
+
+/**
+ * Información de un merchant.
+ */
+export interface MerchantInfo {
+  id: Merchant;
+
+  name: string;
+
+  type: MerchantType;
+
+  country: string;
+
+  website: string;
+
+  affiliateAvailable: boolean;
+
+  active: boolean;
+
+  notes?: string;
 }
