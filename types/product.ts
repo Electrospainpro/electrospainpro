@@ -5,13 +5,6 @@ export interface ProductSpecification {
   value: string;
 }
 
-/**
- * Sistema antiguo de enlaces de afiliación.
- *
- * Se mantiene temporalmente por compatibilidad con los
- * productos existentes mientras migramos al nuevo sistema
- * ProductOffer.
- */
 export interface ProductAffiliateLinks {
   amazon?: string;
   manomano?: string;
@@ -39,18 +32,13 @@ export interface ProductESPScore {
 
 /**
  * Distintivos editoriales.
- *
- * Se utilizarán en el catálogo y comparativas.
  */
 export interface ProductBadge {
   label: string;
 }
 
 /**
- * Productos relacionados.
- *
- * De momento utilizaremos slugs para mantener compatibilidad
- * con la arquitectura actual.
+ * Relaciones del producto.
  */
 export interface ProductRelations {
   compatible?: string[];
@@ -70,16 +58,41 @@ export interface ProductSEO {
 }
 
 /**
+ * Estado de verificación del producto.
+ *
+ * verified:
+ * Datos principales comprobados.
+ *
+ * review:
+ * Producto incorporado pero pendiente de revisión
+ * antes de considerarlo completamente publicado.
+ *
+ * candidate:
+ * Producto candidato todavía no preparado.
+ */
+export type ProductVerificationStatus =
+  | "verified"
+  | "review"
+  | "candidate";
+
+/**
  * Producto ElectroSpainPro.
  */
 export interface Product {
   /**
-   * Identificador interno.
+   * Identificador numérico interno.
    */
   id: number;
 
   /**
-   * Nombre comercial del producto.
+   * Identificador canónico utilizado por el Data Engine.
+   *
+   * Ejemplo: P001, P002...
+   */
+  catalogId: string;
+
+  /**
+   * Nombre comercial.
    */
   name: string;
 
@@ -92,6 +105,16 @@ export interface Product {
    * Marca.
    */
   brand: string;
+
+  /**
+   * Referencia del fabricante / MPN.
+   */
+  mpn: string;
+
+  /**
+   * Código EAN / GTIN.
+   */
+  ean?: string;
 
   /**
    * Categoría principal.
@@ -109,31 +132,28 @@ export interface Product {
   image: string;
 
   /**
-   * Precio antiguo.
+   * Precio antiguo / legacy.
    *
-   * Se mantiene temporalmente por compatibilidad.
-   *
-   * El precio definitivo del comparador procederá
-   * de ProductOffer.
+   * El precio comercial real deberá proceder de offers.
    */
   price: string;
 
   /**
-   * Valoración editorial / externa actual.
+   * Valoración editorial o externa.
+   *
+   * Se mantiene por compatibilidad con el catálogo actual.
    */
   rating: number;
 
   /**
-   * Sistema antiguo de enlaces de afiliación.
+   * Enlaces antiguos de afiliación.
    *
-   * Se mantiene durante la migración.
+   * Se mantienen durante la migración al nuevo sistema de ofertas.
    */
   affiliateLinks: ProductAffiliateLinks;
 
   /**
-   * Nuevo sistema de ofertas comerciales.
-   *
-   * Un producto puede tener múltiples ofertas.
+   * Ofertas comerciales.
    */
   offers?: ProductOffer[];
 
@@ -163,7 +183,10 @@ export interface Product {
   specifications: ProductSpecification[];
 
   /**
-   * Sistema de valoración ElectroSpainPro.
+   * Sistema ESP Score.
+   *
+   * Será opcional hasta que el producto haya pasado
+   * la metodología de valoración correspondiente.
    */
   espScore?: ProductESPScore;
 
@@ -173,8 +196,7 @@ export interface Product {
   badges?: ProductBadge[];
 
   /**
-   * Relaciones entre productos,
-   * guías y comparativas.
+   * Relaciones con otros contenidos o productos.
    */
   relations?: ProductRelations;
 
@@ -182,4 +204,23 @@ export interface Product {
    * Información SEO.
    */
   seo?: ProductSEO;
+
+  /**
+   * Estado de verificación del producto.
+   */
+  verificationStatus?: ProductVerificationStatus;
+
+  /**
+   * Fuente principal de verificación.
+   *
+   * Normalmente será la ficha oficial del fabricante.
+   */
+  verificationSource?: string;
+
+  /**
+   * Fecha de última revisión de los datos.
+   *
+   * Formato YYYY-MM-DD.
+   */
+  verifiedAt?: string;
 }
