@@ -12,7 +12,13 @@ import ProductCTA from "@/components/product/ProductCTA";
 import ProductOffers from "@/components/product/ProductOffers";
 
 import { getProductBySlug } from "@/lib/products";
-import { getOffersByProduct } from "@/lib/offers";
+import {
+  getOffersByProduct,
+  getBestComparableOffer,
+  getBestAffiliateOffer,
+  countVerifiedOffers,
+  countAffiliateOffers,
+} from "@/lib/offers";
 
 interface PageProps {
   params: Promise<{
@@ -32,14 +38,41 @@ export default async function ProductPage({
   }
 
   /*
-   * Sistema antiguo de afiliación.
+   * =====================================================
+   * OFERTAS
+   * =====================================================
+   *
+   * Toda la información comercial se obtiene desde
+   * el Data Engine.
+   *
+   * La página no conoce merchants concretos.
+   */
+
+  const productOffers = getOffersByProduct(
+    product.catalogId
+  );
+
+  const bestComparableOffer =
+    getBestComparableOffer(product.catalogId);
+
+  const bestAffiliateOffer =
+    getBestAffiliateOffer(product.catalogId);
+
+  const verifiedOfferCount =
+    countVerifiedOffers(product.catalogId);
+
+  const affiliateOfferCount =
+    countAffiliateOffers(product.catalogId);
+
+  /*
+   * =====================================================
+   * COMPATIBILIDAD CON EL SISTEMA ANTIGUO
+   * =====================================================
    *
    * Lo mantenemos temporalmente para no romper
-   * compatibilidad con los componentes existentes.
-   *
-   * El nuevo sistema de ofertas será el encargado
-   * progresivamente de sustituirlo.
+   * componentes existentes.
    */
+
   const affiliateLinks = [];
 
   if (product.affiliateLinks.amazon) {
@@ -77,16 +110,6 @@ export default async function ProductPage({
     });
   }
 
-  /*
-   * Nuevo motor de ofertas.
-   *
-   * Las ofertas se relacionan mediante catalogId:
-   * P001, P002, P003...
-   */
-  const productOffers = getOffersByProduct(
-    product.catalogId
-  );
-
   return (
     <main className="mx-auto max-w-7xl px-6 py-12">
       <ProductBreadcrumb
@@ -113,9 +136,11 @@ export default async function ProductPage({
         />
       )}
 
-      <ProductAffiliateButtons
-        affiliateLinks={affiliateLinks}
-      />
+      {affiliateLinks.length > 0 && (
+        <ProductAffiliateButtons
+          affiliateLinks={affiliateLinks}
+        />
+      )}
 
       <ProductSpecifications
         specifications={product.specifications}
@@ -126,9 +151,89 @@ export default async function ProductPage({
         cons={product.cons}
       />
 
+      {/* =================================================
+          RESUMEN COMERCIAL
+          ================================================= */}
+
+      <section className="mt-10 grid gap-4 md:grid-cols-3">
+        <div className="rounded-2xl border bg-white p-5 shadow-sm">
+          <p className="text-sm text-gray-500">
+            Ofertas verificadas
+          </p>
+
+          <p className="mt-1 text-3xl font-bold">
+            {verifiedOfferCount}
+          </p>
+
+          <p className="mt-1 text-sm text-gray-500">
+            tiendas con información comprobada
+          </p>
+        </div>
+
+        <div className="rounded-2xl border bg-white p-5 shadow-sm">
+          <p className="text-sm text-gray-500">
+            Mejor precio comparable
+          </p>
+
+          <p className="mt-1 text-3xl font-bold">
+            {bestComparableOffer?.price !== undefined
+              ? new Intl.NumberFormat("es-ES", {
+                  style: "currency",
+                  currency: "EUR",
+                }).format(bestComparableOffer.price)
+              : "Pendiente"}
+          </p>
+
+          {bestComparableOffer && (
+            <p className="mt-1 text-sm text-gray-500">
+              {bestComparableOffer.merchant}
+            </p>
+          )}
+        </div>
+
+        <div className="rounded-2xl border bg-white p-5 shadow-sm">
+          <p className="text-sm text-gray-500">
+            Ofertas afiliadas
+          </p>
+
+          <p className="mt-1 text-3xl font-bold">
+            {affiliateOfferCount}
+          </p>
+
+          <p className="mt-1 text-sm text-gray-500">
+            oportunidades de monetización
+          </p>
+        </div>
+      </section>
+
+      {/* =================================================
+          OFERTAS
+          ================================================= */}
+
       <ProductOffers
         offers={productOffers}
       />
+
+      {/* =================================================
+          OFERTA AFILIADA DESTACADA
+          ================================================= */}
+
+      {bestAffiliateOffer && (
+        <section className="mt-8 rounded-2xl border p-6">
+          <p className="text-sm font-semibold text-gray-500">
+            RECOMENDACIÓN COMERCIAL
+          </p>
+
+          <h2 className="mt-2 text-2xl font-bold">
+            Mejor oferta afiliada
+          </h2>
+
+          <p className="mt-2 text-gray-600">
+            ElectroSpainPro ha encontrado una oferta
+            afiliada disponible para este producto.
+          </p>
+        </section>
+      )}
 
       <ProductRelated
         products={[
