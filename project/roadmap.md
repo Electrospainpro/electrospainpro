@@ -1,71 +1,82 @@
-# ElectroSpainPro - Roadmap
+# ElectroSpainPro — Roadmap
 
-## Visión
+## 1. Visión del proyecto
 
-Construir la plataforma de referencia en España para profesionales de:
+ElectroSpainPro tiene como objetivo convertirse en una plataforma de referencia en España para profesionales, instaladores, empresas y particulares relacionados con:
 
 - Electricidad
 - Telecomunicaciones
-- Energía Fotovoltaica
+- Energía fotovoltaica
+- Instrumentación
+- Herramientas
+- Seguridad
 
-El objetivo es ayudar a instaladores, empresas y particulares a elegir los mejores productos mediante comparativas, guías y herramientas técnicas.
+La plataforma combinará:
 
----
-
-# Fase 1 - MVP
-
-Objetivo: publicar una primera versión funcional.
-
-## Home
-
-- Header
-- Hero
-- Categorías
-- Productos destacados
+- Catálogo de productos
 - Comparativas
-- Marcas
-- Footer
+- Guías técnicas
+- Knowledge base
+- Herramientas profesionales
+- Sistema ESP Score
+- Relaciones entre productos, marcas, categorías y contenidos
+- SEO programático
+- Monetización mediante afiliación
 
-## SEO
-
-- URLs limpias
-- Sitemap
-- Robots
-- Metadata
-
-## Afiliación
-
-- Amazon
-- ManoMano
-- Leroy Merlin
+El objetivo no es crear únicamente una web de afiliación, sino construir un **motor de conocimiento y recomendación especializado en productos técnicos**.
 
 ---
 
-# Fase 2
+# 2. Estado actual
 
-- Base de datos
-- Prisma
-- Panel de administración
-- Artículos
+## Sprint 17 — Completado
+
+Estado actual del proyecto:
+
+- Home v2
+- Catálogo modular
+- Sistema de marcas
+- Sistema de comparativas
+- Sistema de guías
+- Herramientas técnicas preparadas
+- Sistema ESP Score preparado
+- Productos relacionados
+- Guías relacionadas
+- Comparativas relacionadas
+- Arquitectura de contenidos
+- Base del ESP Data Engine
+- Estructura de búsqueda
+- Estructura SEO
+- Sistema de afiliación
+- Knowledge graph preparado
+
+> Importante: algunas funcionalidades disponen actualmente de arquitectura y componentes preparados, pero todavía necesitan implementación completa y validación.
 
 ---
 
-# Fase 3
+# 3. Arquitectura funcional
 
-- Comparador
-- Buscador
-- Filtros
+ElectroSpainPro se estructura alrededor del ESP Data Engine.
 
----
-
-# Fase 4
-
-- Herramientas técnicas
-- Calculadoras
-- Normativa
-
----
-
-# Objetivo
-
-Convertir ElectroSpainPro en la plataforma de referencia del sector.
+```text
+ESP DATA ENGINE
+│
+├── Productos
+│
+├── Marcas
+│
+├── Categorías
+│
+├── Subcategorías
+│
+├── Comparativas
+│
+├── Guías
+│
+├── Knowledge
+│
+├── Relaciones
+│
+├── ESP Score
+│
+└── Afiliación

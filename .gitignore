@@ -24,3 +24,5 @@ yarn-error.log*
 
 # vscode
 .vscode
+# Información privada del proyecto
+/cuentas/
