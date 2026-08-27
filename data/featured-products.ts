@@ -20,4 +20,8 @@ export const featuredProducts: FeaturedProduct[] = [
   },
   {
     id: 3,
-    name: "Panel Solar 450W
+    name: "Panel Solar 450W",
+    category: "Fotovoltaica",
+    price: "199,00 €",
+  },
+];
