@@ -1,6 +1,6 @@
 /**
- * Tiendas / marketplaces donde ElectroSpainPro puede
- * encontrar una oferta de un producto.
+ * Tiendas / marketplaces donde ElectroSpainPro
+ * puede encontrar una oferta de un producto.
  */
 export type Merchant =
   | "amazon"
@@ -13,7 +13,7 @@ export type Merchant =
 /**
  * Oferta comercial de un producto.
  *
- * Un mismo producto puede tener varias ofertas,
+ * Un producto puede tener varias ofertas,
  * una por cada tienda o marketplace.
  */
 export interface ProductOffer {
@@ -33,7 +33,7 @@ export interface ProductOffer {
   sku?: string;
 
   /**
-   * Código EAN/GTIN del producto.
+   * Código EAN / GTIN del producto.
    */
   ean?: string;
 
@@ -68,9 +68,10 @@ export interface ProductOffer {
   affiliateUrl?: string;
 
   /**
-   * Fecha de última comprobación de la oferta.
+   * Fecha de última comprobación.
    *
-   * Formato recomendado: YYYY-MM-DD.
+   * Formato recomendado:
+   * YYYY-MM-DD
    */
   checkedAt?: string;
 }
