@@ -6,6 +6,7 @@ import {
 
 interface ProductOffersProps {
   offers: ProductOffer[];
+  showHeader?: boolean;
 }
 
 const merchantNames: Record<
@@ -103,6 +104,7 @@ function getOfferStatusLabel(
 
 export default function ProductOffers({
   offers,
+  showHeader = true,
 }: ProductOffersProps) {
   const visibleOffers =
     offers.filter(
@@ -110,14 +112,6 @@ export default function ProductOffers({
         offer.status !== "inactive"
     );
 
-  /*
-   * El motor central determina cuál es
-   * la mejor oferta comparable.
-   *
-   * Para mantener la API actual del componente,
-   * buscamos el resultado dentro de las ofertas
-   * recibidas por la ficha.
-   */
   const productId =
     visibleOffers[0]?.productId;
 
@@ -129,18 +123,26 @@ export default function ProductOffers({
       : undefined;
 
   return (
-    <section className="mt-12">
-      <div className="mb-6">
-        <h2 className="text-3xl font-bold">
-          Dónde comprar
-        </h2>
+    <section
+      className={
+        showHeader
+          ? "mt-12"
+          : ""
+      }
+    >
+      {showHeader && (
+        <div className="mb-6">
+          <h2 className="text-3xl font-bold">
+            Dónde comprar
+          </h2>
 
-        <p className="mt-2 max-w-3xl text-gray-600">
-          Comparamos las ofertas disponibles
-          en diferentes tiendas y
-          marketplaces.
-        </p>
-      </div>
+          <p className="mt-2 max-w-3xl text-gray-600">
+            Comparamos las ofertas
+            disponibles en diferentes
+            tiendas y marketplaces.
+          </p>
+        </div>
+      )}
 
       {visibleOffers.length === 0 ? (
         <div className="rounded-2xl border bg-gray-50 p-6">
@@ -149,11 +151,13 @@ export default function ProductOffers({
           </h3>
 
           <p className="mt-2 text-gray-600">
-            Todavía no disponemos de ofertas
-            comerciales verificadas para este
-            producto. Estamos incorporando
-            progresivamente tiendas y
-            marketplaces al comparador.
+            Todavía no disponemos de
+            ofertas comerciales
+            verificadas para este
+            producto. Estamos
+            incorporando progresivamente
+            tiendas y marketplaces al
+            comparador.
           </p>
         </div>
       ) : (
@@ -314,12 +318,14 @@ export default function ProductOffers({
         </div>
       )}
 
-      <p className="mt-4 text-xs text-gray-400">
-        Los precios y la disponibilidad
-        pueden cambiar. ElectroSpainPro
-        muestra los datos disponibles en la
-        última comprobación registrada.
-      </p>
+      {showHeader && (
+        <p className="mt-4 text-xs text-gray-400">
+          Los precios y la disponibilidad
+          pueden cambiar. ElectroSpainPro
+          muestra los datos disponibles en
+          la última comprobación registrada.
+        </p>
+      )}
     </section>
   );
 }
