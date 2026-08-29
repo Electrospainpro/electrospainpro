@@ -1,43 +1,96 @@
-import { Comparison } from "@/types/comparison";
+import type { Comparison } from "@/types/comparison";
 import { products } from "./products";
 
+/**
+ * Comparativas editoriales de ElectroSpainPro.
+ *
+ * IMPORTANTE:
+ * Las comparativas en estado "candidate" no deben
+ * considerarse publicadas hasta completar la revisión
+ * editorial, criterios y veredicto.
+ */
 export const comparisons: Comparison[] = [
   {
     id: 1,
 
     title:
-      "Schneider Acti9 iC60N C16 vs ABB S201 C16",
+      "Fluke 323 vs Fluke 325: comparativa de pinzas amperimétricas",
 
     slug:
-      "schneider-acti9-vs-abb-s201",
+      "fluke-323-vs-fluke-325",
 
-    category: "electricidad",
+    category: "instrumentacion",
 
     summary:
-      "Comparativa entre dos de los magnetotérmicos profesionales más utilizados por instaladores.",
+      "Comparativa técnica entre las pinzas amperimétricas Fluke 323 y Fluke 325, centrada en sus capacidades de medida y funciones disponibles.",
 
     products: [
-      products[0],
-      products[1],
+      products.find(
+        (product) =>
+          product.catalogId === "P005"
+      )!,
+      products.find(
+        (product) =>
+          product.catalogId === "P006"
+      )!,
     ],
 
-    criteria: [
+    specifications: [
       {
-        label: "Calidad",
-        winner: "Schneider Electric",
+        label: "Tecnología",
+        productA: "True-RMS",
+        productB: "True-RMS",
       },
       {
-        label: "Durabilidad",
-        winner: "Empate",
+        label: "Corriente",
+        productA: "400 A AC",
+        productB: "40 A / 400 A AC/DC",
       },
       {
-        label: "Precio",
-        winner: "ABB",
+        label: "Tensión",
+        productA: "600 V AC/DC",
+        productB: "600 V AC/DC",
+      },
+      {
+        label: "Temperatura",
+        productA: "No indicada en los datos actuales",
+        productB: "-10 °C a 400 °C",
+      },
+      {
+        label: "Frecuencia",
+        productA: "No indicada en los datos actuales",
+        productB: "5 Hz a 500 Hz",
+      },
+      {
+        label: "Seguridad",
+        productA:
+          "CAT III 600 V / CAT IV 300 V",
+        productB:
+          "CAT III 600 V / CAT IV 300 V",
       },
     ],
 
-    winner: "Schneider Electric",
+    criteria: [],
 
-    publishedAt: "2026-07-12",
+    faq: [],
+
+    seo: {
+      metaTitle:
+        "Fluke 323 vs Fluke 325 | Comparativa de pinzas amperimétricas",
+
+      metaDescription:
+        "Comparamos las Fluke 323 y Fluke 325 según los datos técnicos verificados disponibles en ElectroSpainPro.",
+
+      keywords: [
+        "Fluke 323 vs Fluke 325",
+        "Fluke 323",
+        "Fluke 325",
+        "pinza amperimétrica",
+        "True-RMS",
+        "comparativa Fluke",
+      ],
+    },
+
+    publishedAt: "2026-08-29",
   },
 ];
