@@ -1,4 +1,5 @@
 import type { ProductOffer } from "@/types/offer";
+import type { ESPScore } from "@/types/esp";
 
 export interface ProductSpecification {
   label: string;
@@ -12,22 +13,6 @@ export interface ProductAffiliateLinks {
   rs?: string;
   farnell?: string;
   pccomponentes?: string;
-}
-
-/**
- * Puntuación propia de ElectroSpainPro.
- *
- * Cada criterio se valora de 0 a 10.
- */
-export interface ProductESPScore {
-  quality: number;
-  reliability: number;
-  valueForMoney: number;
-  installation: number;
-  durability: number;
-  availability: number;
-  warranty: number;
-  overall: number;
 }
 
 /**
@@ -185,10 +170,13 @@ export interface Product {
   /**
    * Sistema ESP Score.
    *
+   * La valoración utiliza la metodología definida
+   * en types/esp.ts.
+   *
    * Será opcional hasta que el producto haya pasado
-   * la metodología de valoración correspondiente.
+   * la correspondiente valoración editorial.
    */
-  espScore?: ProductESPScore;
+  espScore?: ESPScore;
 
   /**
    * Distintivos editoriales.

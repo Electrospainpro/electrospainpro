@@ -1,9 +1,5 @@
 import type { ProductOffer } from "@/types/offer";
 
-import {
-  getBestComparableOffer,
-} from "@/lib/offers";
-
 interface ProductOffersProps {
   offers: ProductOffer[];
   showHeader?: boolean;
@@ -23,7 +19,7 @@ const merchantNames: Record<
     "La Tienda de Electricidad",
 };
 
-function formatCurrency(value?: number) {
+function formatCurrency(value?: number): string {
   if (value === undefined) {
     return "Precio pendiente";
   }
@@ -36,9 +32,9 @@ function formatCurrency(value?: number) {
 
 function getTaxLabel(
   offer: ProductOffer
-) {
+): string {
   if (offer.priceTaxStatus === "included") {
-    return "IVA incluido";
+    return "Impuestos incluidos";
   }
 
   if (offer.priceTaxStatus === "excluded") {
@@ -54,7 +50,7 @@ function getTaxLabel(
 
 function getOfferTotal(
   offer: ProductOffer
-) {
+): number | undefined {
   if (offer.price === undefined) {
     return undefined;
   }
@@ -65,28 +61,34 @@ function getOfferTotal(
   );
 }
 
+/**
+ * Precio utilizado para comparar ofertas.
+ *
+ * Solo se considera comparable cuando:
+ *
+ * - la oferta está verificada
+ * - existe precio
+ * - el precio tiene impuestos incluidos
+ *
+ * Los gastos de envío conocidos se suman al precio.
+ */
 function getComparablePrice(
   offer: ProductOffer
-) {
-  const total = getOfferTotal(offer);
-
-  if (total === undefined) {
-    return undefined;
-  }
-
+): number | undefined {
   if (
-    offer.priceTaxStatus !==
-    "included"
+    offer.status !== "verified" ||
+    offer.price === undefined ||
+    offer.priceTaxStatus !== "included"
   ) {
     return undefined;
   }
 
-  return total;
+  return getOfferTotal(offer);
 }
 
 function getOfferStatusLabel(
   offer: ProductOffer
-) {
+): string {
   if (offer.status === "pending") {
     return "Pendiente de verificación";
   }
@@ -102,25 +104,60 @@ function getOfferStatusLabel(
   return "Oferta verificada";
 }
 
+function getOfferTypeLabel(
+  offer: ProductOffer
+): string {
+  if (offer.affiliateUrl) {
+    return "Oferta afiliada";
+  }
+
+  return "Oferta comercial";
+}
+
+function getOfferTypeClass(
+  offer: ProductOffer
+): string {
+  if (offer.affiliateUrl) {
+    return "bg-green-100 text-green-700";
+  }
+
+  return "bg-gray-100 text-gray-700";
+}
+
 export default function ProductOffers({
   offers,
   showHeader = true,
 }: ProductOffersProps) {
-  const visibleOffers =
-    offers.filter(
-      (offer) =>
-        offer.status !== "inactive"
-    );
+  const visibleOffers = offers.filter(
+    (offer) =>
+      offer.status !== "inactive"
+  );
 
-  const productId =
-    visibleOffers[0]?.productId;
+  const comparableOffers =
+    visibleOffers
+      .map((offer) => ({
+        offer,
+        comparablePrice:
+          getComparablePrice(offer),
+      }))
+      .filter(
+        (
+          item
+        ): item is {
+          offer: ProductOffer;
+          comparablePrice: number;
+        } =>
+          item.comparablePrice !==
+          undefined
+      )
+      .sort(
+        (a, b) =>
+          a.comparablePrice -
+          b.comparablePrice
+      );
 
   const bestComparableOffer =
-    productId
-      ? getBestComparableOffer(
-          productId
-        )
-      : undefined;
+    comparableOffers[0]?.offer;
 
   return (
     <section
@@ -137,9 +174,9 @@ export default function ProductOffers({
           </h2>
 
           <p className="mt-2 max-w-3xl text-gray-600">
-            Comparamos las ofertas
-            disponibles en diferentes
-            tiendas y marketplaces.
+            Comparamos las ofertas disponibles
+            en diferentes tiendas y
+            marketplaces.
           </p>
         </div>
       )}
@@ -151,13 +188,11 @@ export default function ProductOffers({
           </h3>
 
           <p className="mt-2 text-gray-600">
-            Todavía no disponemos de
-            ofertas comerciales
-            verificadas para este
-            producto. Estamos
-            incorporando progresivamente
-            tiendas y marketplaces al
-            comparador.
+            Todavía no disponemos de ofertas
+            comerciales verificadas para este
+            producto. Estamos incorporando
+            progresivamente tiendas y
+            marketplaces al comparador.
           </p>
         </div>
       ) : (
@@ -165,7 +200,10 @@ export default function ProductOffers({
           {visibleOffers.map(
             (offer) => {
               const total =
-                getOfferTotal(
+                getOfferTotal(offer);
+
+              const comparablePrice =
+                getComparablePrice(
                   offer
                 );
 
@@ -183,22 +221,17 @@ export default function ProductOffers({
                 clickUrl.trim().length >
                   0;
 
-              const comparablePrice =
-                getComparablePrice(
-                  offer
-                );
-
               return (
                 <article
                   key={offer.id}
-                  className={`rounded-2xl border bg-white p-6 shadow-sm ${
+                  className={`rounded-2xl border bg-white p-6 shadow-sm transition ${
                     isBest
                       ? "border-blue-600 ring-1 ring-blue-600"
-                      : ""
+                      : "hover:shadow-md"
                   }`}
                 >
                   <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-                    <div>
+                    <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <h3 className="text-xl font-bold">
                           {
@@ -210,9 +243,19 @@ export default function ProductOffers({
 
                         {isBest && (
                           <span className="rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold text-white">
-                            Mejor precio comparable
+                            🏆 Mejor precio
                           </span>
                         )}
+
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-semibold ${getOfferTypeClass(
+                            offer
+                          )}`}
+                        >
+                          {getOfferTypeLabel(
+                            offer
+                          )}
+                        </span>
                       </div>
 
                       <p className="mt-2 text-sm text-gray-500">
@@ -224,14 +267,27 @@ export default function ProductOffers({
                       {offer.sku && (
                         <p className="mt-2 text-sm text-gray-600">
                           Referencia tienda:{" "}
-                          {offer.sku}
+                          <span className="font-medium">
+                            {offer.sku}
+                          </span>
                         </p>
                       )}
 
                       {offer.mpn && (
                         <p className="mt-1 text-sm text-gray-600">
                           MPN:{" "}
-                          {offer.mpn}
+                          <span className="font-medium">
+                            {offer.mpn}
+                          </span>
+                        </p>
+                      )}
+
+                      {offer.ean && (
+                        <p className="mt-1 text-sm text-gray-600">
+                          EAN:{" "}
+                          <span className="font-medium">
+                            {offer.ean}
+                          </span>
                         </p>
                       )}
 
@@ -239,6 +295,15 @@ export default function ProductOffers({
                         <p className="mt-1 text-sm text-gray-600">
                           Entrega:{" "}
                           {offer.delivery}
+                        </p>
+                      )}
+
+                      {offer.inStock !==
+                        undefined && (
+                        <p className="mt-1 text-sm text-gray-600">
+                          {offer.inStock
+                            ? "✓ En stock"
+                            : "Sin stock"}
                         </p>
                       )}
 
@@ -253,14 +318,14 @@ export default function ProductOffers({
                       )}
 
                       {offer.checkedAt && (
-                        <p className="mt-1 text-xs text-gray-400">
+                        <p className="mt-2 text-xs text-gray-400">
                           Comprobado:{" "}
                           {offer.checkedAt}
                         </p>
                       )}
                     </div>
 
-                    <div className="flex flex-col items-start md:items-end">
+                    <div className="flex shrink-0 flex-col items-start md:items-end">
                       <span className="text-sm text-gray-500">
                         Precio publicado
                       </span>
@@ -290,13 +355,20 @@ export default function ProductOffers({
                         )}
 
                       {comparablePrice !==
-                        undefined && (
-                        <span className="mt-1 text-xs text-gray-500">
+                        undefined ? (
+                        <span className="mt-1 text-xs font-medium text-gray-700">
                           Precio comparable:{" "}
                           {formatCurrency(
                             comparablePrice
                           )}
                         </span>
+                      ) : (
+                        offer.price !==
+                          undefined && (
+                          <span className="mt-1 max-w-xs text-right text-xs text-amber-600">
+                            No comparable directamente
+                          </span>
+                        )
                       )}
 
                       {canVisit && (
@@ -304,7 +376,7 @@ export default function ProductOffers({
                           href={clickUrl}
                           target="_blank"
                           rel="nofollow sponsored noopener"
-                          className="mt-3 rounded-xl bg-black px-5 py-3 font-semibold text-white transition hover:opacity-80"
+                          className="mt-4 inline-flex items-center justify-center rounded-xl bg-black px-5 py-3 font-semibold text-white transition hover:opacity-80"
                         >
                           Ver oferta
                         </a>
@@ -320,10 +392,10 @@ export default function ProductOffers({
 
       {showHeader && (
         <p className="mt-4 text-xs text-gray-400">
-          Los precios y la disponibilidad
-          pueden cambiar. ElectroSpainPro
-          muestra los datos disponibles en
-          la última comprobación registrada.
+          Los precios y la disponibilidad pueden
+          cambiar. ElectroSpainPro muestra los
+          datos disponibles en la última
+          comprobación registrada.
         </p>
       )}
     </section>

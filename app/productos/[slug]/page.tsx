@@ -110,23 +110,19 @@ export default async function ProductPage({
         }
       />
 
-      {product.espScore && (
-        <ProductESPScore
-          score={
-            product.espScore.overall
-          }
-        />
-      )}
+      <ProductSpecifications
+        specifications={
+          product.specifications
+        }
+      />
+
+      <ProductESPScore
+        score={product.espScore}
+      />
 
       <ProductAffiliateButtons
         affiliateLinks={
           affiliateLinks
-        }
-      />
-
-      <ProductSpecifications
-        specifications={
-          product.specifications
         }
       />
 
