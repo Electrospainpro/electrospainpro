@@ -17,9 +17,9 @@
   "catalog:preview-comparisons": "node scripts/import/preview-comparisons-v21.mjs",
   "catalog:preview-content": "node scripts/import/preview-content-v21.mjs",
   "catalog:import-content": "node scripts/import/import-content-v21.mjs",
-  "tools:validate": "node scripts/import/tools/validate-tools-v22.mjs",
-  "tools:preview": "node scripts/import/tools/import-tools-v22.mjs --dry-run",
-  "tools:import": "node scripts/import/tools/import-tools-v22.mjs"
+  "tools:validate": "node scripts/import/tools/validate-tools-v23.mjs",
+  "tools:preview": "node scripts/import/tools/import-tools-v23.mjs --dry-run",
+  "tools:import": "node scripts/import/tools/import-tools-v23.mjs"
   },
   "dependencies": {
     "next": "16.2.10",

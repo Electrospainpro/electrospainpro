@@ -26,3 +26,6 @@ yarn-error.log*
 .vscode
 # Información privada del proyecto
 /cuentas/
+app/prueba-ofertas/
+catalog/backups/
+tsconfig.tsbuildinfo

@@ -12,11 +12,17 @@ export type CalculatorStatus =
   | "published"
   | "disabled";
 
+export type CalculatorToolType =
+  | "calculator"
+  | "converter";
+
 export interface CalculatorDefinition {
   toolId: string;
   slug: string;
   vertical: string;
   name: string;
+
+  toolType: CalculatorToolType;
 
   release: CalculatorRelease;
   priority: CalculatorPriority;

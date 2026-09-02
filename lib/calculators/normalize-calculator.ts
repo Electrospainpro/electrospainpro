@@ -3,6 +3,7 @@ import type {
   CalculatorPriority,
   CalculatorRelease,
   CalculatorStatus,
+  CalculatorToolType,
 } from "@/types/calculator";
 
 function splitList(value: unknown): string[] {
@@ -17,7 +18,9 @@ function splitList(value: unknown): string[] {
 }
 
 function normalizeRelease(value: unknown): CalculatorRelease {
-  return String(value).trim().toUpperCase() === "V2" ? "V2" : "V1";
+  return String(value).trim().toUpperCase() === "V2"
+    ? "V2"
+    : "V1";
 }
 
 function normalizePriority(value: unknown): CalculatorPriority {
@@ -58,6 +61,19 @@ function normalizeStatus(value: unknown): CalculatorStatus {
   }
 }
 
+function normalizeToolType(value: unknown): CalculatorToolType {
+  const normalized = String(value).trim().toLowerCase();
+
+  switch (normalized) {
+    case "converter":
+      return "converter";
+
+    case "calculator":
+    default:
+      return "calculator";
+  }
+}
+
 function cleanString(value: unknown): string {
   return String(value ?? "").trim();
 }
@@ -71,24 +87,33 @@ export function normalizeCalculator(
     vertical: cleanString(row.vertical),
     name: cleanString(row.name),
 
+    toolType: normalizeToolType(row.tool_type),
+
     release: normalizeRelease(row.release),
     priority: normalizePriority(row.priority),
     status: normalizeStatus(row.status),
 
     monetization: cleanString(row.monetization),
 
-    seoTitle: cleanString(row.seo_title) || undefined,
-    seoDescription: cleanString(row.seo_description) || undefined,
+    seoTitle:
+      cleanString(row.seo_title) || undefined,
+
+    seoDescription:
+      cleanString(row.seo_description) || undefined,
 
     inputs: splitList(row.inputs),
     outputs: splitList(row.outputs),
 
-    formula: cleanString(row.formula) || undefined,
+    formula:
+      cleanString(row.formula) || undefined,
+
     units: splitList(row.units),
 
-    limitations: cleanString(row.limitations) || undefined,
+    limitations:
+      cleanString(row.limitations) || undefined,
 
     relatedProducts: splitList(row.related_products),
+
     relatedGuides: splitList(row.related_guides),
   };
 }

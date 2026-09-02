@@ -2,7 +2,7 @@ export const siteConfig = {
   name: "ElectroSpainPro",
 
   description:
-    "Comparador de electrodomésticos, climatización y tecnología para el hogar.",
+    "Comparador profesional de productos eléctricos, telecomunicaciones, fotovoltaica e instrumentación técnica.",
 
   url: "https://electrospainpro.com",
 
@@ -23,4 +23,4 @@ export const siteConfig = {
     facebook: "",
     linkedin: "",
   },
-};
+} as const;
