@@ -5,33 +5,32 @@ interface ProductOffersProps {
   showHeader?: boolean;
 }
 
-const merchantNames: Record<
-  ProductOffer["merchant"],
-  string
-> = {
+const merchantNames: Record<ProductOffer["merchant"], string> = {
   amazon: "Amazon",
   pccomponentes: "PcComponentes",
   manomano: "ManoMano",
   leroymerlin: "Leroy Merlin",
   rs: "RS",
   farnell: "Farnell",
-  latiendadeelectricidad:
-    "La Tienda de Electricidad",
+  latiendadeelectricidad: "La Tienda de Electricidad",
 };
 
-function formatCurrency(value?: number): string {
+function formatCurrency(
+  value?: number,
+  currency = "EUR",
+): string {
   if (value === undefined) {
     return "Precio pendiente";
   }
 
   return new Intl.NumberFormat("es-ES", {
     style: "currency",
-    currency: "EUR",
+    currency,
   }).format(value);
 }
 
 function getTaxLabel(
-  offer: ProductOffer
+  offer: ProductOffer,
 ): string {
   if (offer.priceTaxStatus === "included") {
     return "Impuestos incluidos";
@@ -49,7 +48,7 @@ function getTaxLabel(
 }
 
 function getOfferTotal(
-  offer: ProductOffer
+  offer: ProductOffer,
 ): number | undefined {
   if (offer.price === undefined) {
     return undefined;
@@ -62,18 +61,44 @@ function getOfferTotal(
 }
 
 /**
- * Precio utilizado para comparar ofertas.
+ * Calcula una referencia con impuestos cuando:
  *
- * Solo se considera comparable cuando:
- *
- * - la oferta está verificada
  * - existe precio
- * - el precio tiene impuestos incluidos
+ * - el precio está publicado sin impuestos
+ * - existe tipo impositivo
+ * - no hay un coste de envío adicional que pueda
+ *   tener un tratamiento fiscal independiente
  *
- * Los gastos de envío conocidos se suman al precio.
+ * No se utiliza para comparar ofertas.
  */
+function getTaxIncludedReference(
+  offer: ProductOffer,
+): number | undefined {
+  if (
+    offer.price === undefined ||
+    offer.priceTaxStatus !== "excluded" ||
+    offer.taxRate === undefined
+  ) {
+    return undefined;
+  }
+
+  if (
+    offer.shippingCost !== undefined &&
+    offer.shippingCost !== 0
+  ) {
+    return undefined;
+  }
+
+  return Number(
+    (
+      offer.price *
+      (1 + offer.taxRate / 100)
+    ).toFixed(2),
+  );
+}
+
 function getComparablePrice(
-  offer: ProductOffer
+  offer: ProductOffer,
 ): number | undefined {
   if (
     offer.status !== "verified" ||
@@ -87,7 +112,7 @@ function getComparablePrice(
 }
 
 function getOfferStatusLabel(
-  offer: ProductOffer
+  offer: ProductOffer,
 ): string {
   if (offer.status === "pending") {
     return "Pendiente de verificación";
@@ -105,7 +130,7 @@ function getOfferStatusLabel(
 }
 
 function getOfferTypeLabel(
-  offer: ProductOffer
+  offer: ProductOffer,
 ): string {
   if (offer.affiliateUrl) {
     return "Oferta afiliada";
@@ -114,23 +139,13 @@ function getOfferTypeLabel(
   return "Oferta comercial";
 }
 
-function getOfferTypeClass(
-  offer: ProductOffer
-): string {
-  if (offer.affiliateUrl) {
-    return "bg-green-100 text-green-700";
-  }
-
-  return "bg-gray-100 text-gray-700";
-}
-
 export default function ProductOffers({
   offers,
   showHeader = true,
 }: ProductOffersProps) {
   const visibleOffers = offers.filter(
     (offer) =>
-      offer.status !== "inactive"
+      offer.status !== "inactive",
   );
 
   const comparableOffers =
@@ -142,18 +157,18 @@ export default function ProductOffers({
       }))
       .filter(
         (
-          item
+          item,
         ): item is {
           offer: ProductOffer;
           comparablePrice: number;
         } =>
           item.comparablePrice !==
-          undefined
+          undefined,
       )
       .sort(
         (a, b) =>
           a.comparablePrice -
-          b.comparablePrice
+          b.comparablePrice,
       );
 
   const bestComparableOffer =
@@ -167,73 +182,112 @@ export default function ProductOffers({
           : ""
       }
     >
+      {/* ======================================================
+          CABECERA
+      ====================================================== */}
+
       {showHeader && (
-        <div className="mb-6">
-          <h2 className="text-3xl font-bold">
+        <div className="mb-7">
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-blue-600">
+            Comparador de ofertas
+          </p>
+
+          <h2 className="mt-2 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
             Dónde comprar
           </h2>
 
-          <p className="mt-2 max-w-3xl text-gray-600">
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600 sm:text-base">
             Comparamos las ofertas disponibles
             en diferentes tiendas y
-            marketplaces.
+            marketplaces para ayudarte a
+            encontrar la mejor opción.
           </p>
         </div>
       )}
 
-      {visibleOffers.length === 0 ? (
-        <div className="rounded-2xl border bg-gray-50 p-6">
-          <h3 className="text-lg font-semibold">
-            Estamos recopilando ofertas
-          </h3>
+      {/* ======================================================
+          SIN OFERTAS
+      ====================================================== */}
 
-          <p className="mt-2 text-gray-600">
-            Todavía no disponemos de ofertas
-            comerciales verificadas para este
-            producto. Estamos incorporando
-            progresivamente tiendas y
-            marketplaces al comparador.
-          </p>
+      {visibleOffers.length === 0 ? (
+        <div className="rounded-[22px] border border-slate-200 bg-white p-6 shadow-[0_4px_18px_rgba(15,23,42,0.035)] sm:p-7">
+          <div className="flex items-start gap-4">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+              <svg
+                className="h-5 w-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+              >
+                <path d="M6 8h12l1 12H5L6 8Z" />
+                <path d="M9 8a3 3 0 0 1 6 0" />
+              </svg>
+            </div>
+
+            <div>
+              <h3 className="text-base font-bold text-slate-950">
+                Estamos recopilando ofertas
+              </h3>
+
+              <p className="mt-1.5 text-sm leading-6 text-slate-600">
+                Todavía no disponemos de
+                ofertas comerciales verificadas
+                para este producto. Estamos
+                incorporando progresivamente
+                tiendas y marketplaces al
+                comparador.
+              </p>
+            </div>
+          </div>
         </div>
       ) : (
-        <div className="space-y-4">
-          {visibleOffers.map(
-            (offer) => {
-              const total =
-                getOfferTotal(offer);
+        <div className="space-y-3">
+          {visibleOffers.map((offer) => {
+            const comparablePrice =
+              getComparablePrice(
+                offer,
+              );
 
-              const comparablePrice =
-                getComparablePrice(
-                  offer
-                );
+            const taxIncludedReference =
+              getTaxIncludedReference(
+                offer,
+              );
 
-              const isBest =
-                bestComparableOffer?.id ===
-                offer.id;
+            const isBest =
+              bestComparableOffer?.id ===
+              offer.id;
 
-              const clickUrl =
-                offer.affiliateUrl ??
-                offer.productUrl;
+            const clickUrl =
+              offer.affiliateUrl ??
+              offer.productUrl;
 
-              const canVisit =
-                offer.status ===
-                  "verified" &&
-                clickUrl.trim().length >
-                  0;
+            const canVisit =
+              offer.status ===
+                "verified" &&
+              clickUrl.trim().length > 0;
 
-              return (
-                <article
-                  key={offer.id}
-                  className={`rounded-2xl border bg-white p-6 shadow-sm transition ${
-                    isBest
-                      ? "border-blue-600 ring-1 ring-blue-600"
-                      : "hover:shadow-md"
-                  }`}
-                >
-                  <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+            const currency =
+              offer.currency;
+
+            return (
+              <article
+                key={offer.id}
+                className={`overflow-hidden rounded-[20px] border bg-white transition ${
+                  isBest
+                    ? "border-blue-500 shadow-[0_6px_25px_rgba(37,99,235,0.10)]"
+                    : "border-slate-200 shadow-[0_3px_14px_rgba(15,23,42,0.035)] hover:border-slate-300 hover:shadow-[0_6px_22px_rgba(15,23,42,0.06)]"
+                }`}
+              >
+                <div className="p-5 sm:p-6">
+                  <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_220px] lg:items-center">
+                    {/* ==================================================
+                        INFORMACIÓN TIENDA
+                    ================================================== */}
+
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="text-xl font-bold">
+                        <h3 className="text-lg font-bold text-slate-950 sm:text-xl">
                           {
                             merchantNames[
                               offer.merchant
@@ -242,161 +296,227 @@ export default function ProductOffers({
                         </h3>
 
                         {isBest && (
-                          <span className="rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold text-white">
-                            🏆 Mejor precio
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-600 px-2.5 py-1 text-[11px] font-bold text-white">
+                            <span aria-hidden="true">
+                              🏆
+                            </span>
+                            Mejor precio
                           </span>
                         )}
 
                         <span
-                          className={`rounded-full px-3 py-1 text-xs font-semibold ${getOfferTypeClass(
-                            offer
-                          )}`}
+                          className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold ${
+                            offer.affiliateUrl
+                              ? "bg-emerald-50 text-emerald-700"
+                              : "bg-slate-100 text-slate-600"
+                          }`}
                         >
                           {getOfferTypeLabel(
-                            offer
+                            offer,
                           )}
                         </span>
                       </div>
 
-                      <p className="mt-2 text-sm text-gray-500">
-                        {getOfferStatusLabel(
-                          offer
+                      {/* ESTADO */}
+
+                      <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+                        <span
+                          className={
+                            offer.inStock ===
+                            false
+                              ? "text-red-600"
+                              : "font-medium text-emerald-700"
+                          }
+                        >
+                          {offer.inStock ===
+                          false
+                            ? "✕ Sin stock"
+                            : "✓ En stock"}
+                        </span>
+
+                        <span className="text-slate-500">
+                          {
+                            getOfferStatusLabel(
+                              offer,
+                            )
+                          }
+                        </span>
+                      </div>
+
+                      {/* ENVÍO */}
+
+                      <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs text-slate-500">
+                        {offer.shippingCost !==
+                          undefined && (
+                          <span>
+                            Envío:{" "}
+                            <strong className="font-semibold text-slate-700">
+                              {offer.shippingCost ===
+                              0
+                                ? "Gratis"
+                                : formatCurrency(
+                                    offer.shippingCost,
+                                    currency,
+                                  )}
+                            </strong>
+                          </span>
                         )}
-                      </p>
 
-                      {offer.sku && (
-                        <p className="mt-2 text-sm text-gray-600">
-                          Referencia tienda:{" "}
-                          <span className="font-medium">
-                            {offer.sku}
+                        {offer.delivery && (
+                          <span>
+                            Entrega:{" "}
+                            <strong className="font-semibold text-slate-700">
+                              {
+                                offer.delivery
+                              }
+                            </strong>
                           </span>
-                        </p>
-                      )}
+                        )}
+                      </div>
 
-                      {offer.mpn && (
-                        <p className="mt-1 text-sm text-gray-600">
-                          MPN:{" "}
-                          <span className="font-medium">
-                            {offer.mpn}
-                          </span>
-                        </p>
-                      )}
+                      {/* REFERENCIAS */}
 
-                      {offer.ean && (
-                        <p className="mt-1 text-sm text-gray-600">
-                          EAN:{" "}
-                          <span className="font-medium">
-                            {offer.ean}
-                          </span>
-                        </p>
-                      )}
-
-                      {offer.delivery && (
-                        <p className="mt-1 text-sm text-gray-600">
-                          Entrega:{" "}
-                          {offer.delivery}
-                        </p>
-                      )}
-
-                      {offer.inStock !==
-                        undefined && (
-                        <p className="mt-1 text-sm text-gray-600">
-                          {offer.inStock
-                            ? "✓ En stock"
-                            : "Sin stock"}
-                        </p>
-                      )}
-
-                      {offer.shippingCost !==
-                        undefined && (
-                        <p className="mt-1 text-sm text-gray-600">
-                          Envío:{" "}
-                          {formatCurrency(
-                            offer.shippingCost
+                      {(offer.sku ||
+                        offer.mpn ||
+                        offer.ean) && (
+                        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-slate-400">
+                          {offer.sku && (
+                            <span>
+                              Ref.{" "}
+                              {offer.sku}
+                            </span>
                           )}
-                        </p>
+
+                          {offer.mpn && (
+                            <span>
+                              MPN{" "}
+                              {offer.mpn}
+                            </span>
+                          )}
+
+                          {offer.ean && (
+                            <span>
+                              EAN{" "}
+                              {offer.ean}
+                            </span>
+                          )}
+                        </div>
                       )}
+
+                      {/* COMPROBACIÓN */}
 
                       {offer.checkedAt && (
-                        <p className="mt-2 text-xs text-gray-400">
+                        <p className="mt-3 text-[11px] text-slate-400">
                           Comprobado:{" "}
                           {offer.checkedAt}
                         </p>
                       )}
                     </div>
 
-                    <div className="flex shrink-0 flex-col items-start md:items-end">
-                      <span className="text-sm text-gray-500">
-                        Precio publicado
-                      </span>
+                    {/* ==================================================
+                        PRECIO + CTA
+                    ================================================== */}
 
-                      <span className="text-2xl font-bold">
-                        {formatCurrency(
-                          offer.price
-                        )}
-                      </span>
+                    <div className="border-t border-slate-100 pt-4 lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0">
+                      <div className="lg:text-right">
+                        <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400">
+                          Precio publicado
+                        </p>
 
-                      <span className="mt-1 text-xs text-gray-500">
-                        {getTaxLabel(
-                          offer
-                        )}
-                      </span>
-
-                      {offer.shippingCost !==
-                        undefined &&
-                        total !==
-                          undefined && (
-                          <span className="mt-1 text-xs text-gray-500">
-                            Total:{" "}
-                            {formatCurrency(
-                              total
-                            )}
-                          </span>
-                        )}
-
-                      {comparablePrice !==
-                        undefined ? (
-                        <span className="mt-1 text-xs font-medium text-gray-700">
-                          Precio comparable:{" "}
+                        <p className="mt-0.5 text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
                           {formatCurrency(
-                            comparablePrice
+                            offer.price,
+                            currency,
                           )}
-                        </span>
-                      ) : (
-                        offer.price !==
-                          undefined && (
-                          <span className="mt-1 max-w-xs text-right text-xs text-amber-600">
-                            No comparable directamente
-                          </span>
-                        )
-                      )}
+                        </p>
 
-                      {canVisit && (
-                        <a
-                          href={clickUrl}
-                          target="_blank"
-                          rel="nofollow sponsored noopener"
-                          className="mt-4 inline-flex items-center justify-center rounded-xl bg-black px-5 py-3 font-semibold text-white transition hover:opacity-80"
-                        >
-                          Ver oferta
-                        </a>
-                      )}
+                        <p className="mt-1 text-[11px] text-slate-500">
+                          {
+                            getTaxLabel(
+                              offer,
+                            )
+                          }
+                        </p>
+
+                        {taxIncludedReference !==
+                          undefined &&
+                          offer.taxRate !==
+                            undefined && (
+                            <p className="mt-1 text-xs text-slate-500">
+                              Referencia con{" "}
+                              {offer.taxRate}%:{" "}
+                              <strong className="font-semibold text-slate-700">
+                                {formatCurrency(
+                                  taxIncludedReference,
+                                  currency,
+                                )}
+                              </strong>
+                            </p>
+                          )}
+
+                        {comparablePrice !==
+                        undefined ? (
+                          <p className="mt-1 text-xs font-semibold text-slate-700">
+                            Precio comparable:{" "}
+                            {formatCurrency(
+                              comparablePrice,
+                              currency,
+                            )}
+                          </p>
+                        ) : (
+                          offer.price !==
+                            undefined && (
+                            <p className="mt-1 text-xs text-amber-600">
+                              No comparable
+                              directamente
+                            </p>
+                          )
+                        )}
+
+                        {canVisit && (
+                          <a
+                            href={clickUrl}
+                            target="_blank"
+                            rel="nofollow sponsored noopener"
+                            className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white shadow-[0_5px_15px_rgba(37,99,235,0.20)] transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 lg:w-auto"
+                          >
+                            Ver oferta
+
+                            <span
+                              aria-hidden="true"
+                              className="text-base"
+                            >
+                              →
+                            </span>
+                          </a>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </article>
-              );
-            }
-          )}
+                </div>
+              </article>
+            );
+          })}
         </div>
       )}
 
+      {/* ======================================================
+          AVISO
+      ====================================================== */}
+
       {showHeader && (
-        <p className="mt-4 text-xs text-gray-400">
-          Los precios y la disponibilidad pueden
-          cambiar. ElectroSpainPro muestra los
-          datos disponibles en la última
-          comprobación registrada.
-        </p>
+        <div className="mt-4 flex flex-col gap-1 text-[11px] leading-5 text-slate-400 sm:flex-row sm:items-center sm:justify-between">
+          <p>
+            Los precios y la disponibilidad
+            pueden cambiar.
+          </p>
+
+          <p>
+            ElectroSpainPro muestra los datos
+            disponibles en la última
+            comprobación registrada.
+          </p>
+        </div>
       )}
     </section>
   );

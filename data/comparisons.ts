@@ -326,4 +326,26 @@ export const comparisons: Comparison[] = [
 
     publishedAt: "2026-08-29",
   },
+  {
+    id: 2,
+    title: "Schneider vs Hager C16",
+    slug: "schneider-vs-hager-c16",
+    category: "electricidad",
+    summary: "Schneider vs Hager C16. Contenido editorial pendiente de desarrollo.",
+    introduction:
+      "Contenido editorial pendiente de desarrollo.",
+    products: [
+      products.find((product) => product.catalogId === "P001")!,
+      products.find((product) => product.catalogId === "P003")!
+    ],
+    specifications: [],
+    criteria: [],
+    productAPros: [],
+    productACons: [],
+    productBPros: [],
+    productBCons: [],
+    recommendations: [],
+    status: "candidate",
+    publishedAt: "",
+  }
 ];

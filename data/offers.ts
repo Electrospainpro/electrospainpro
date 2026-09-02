@@ -71,4 +71,28 @@ export const offers: ProductOffer[] = [
     source:
       "Farnell España - código 1274602",
   },
+ 
+  {
+    id: "O-P005-RS",
+    productId: "P005",
+    merchant: "rs",
+    sku: "765-3658",
+    mpn: "FLUKE 323",
+    price: 198,
+    priceTaxStatus: "excluded",
+    taxRate: 21,
+    shippingCost: 0,
+    shippingTaxStatus: "unknown",
+    currency: "EUR",
+    inStock: true,
+    delivery: undefined,
+    productUrl:
+      "https://es.rs-online.com/web/p/pinzas-amperimetricas/7653658",
+    affiliateUrl: undefined,
+    commission: undefined,
+    checkedAt: "2026-09-01",
+    status: "verified",
+    source:
+      "RS España - código RS 765-3658",
+  },
 ];

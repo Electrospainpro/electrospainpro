@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import ComparisonHeader from "@/components/comparison/ComparisonHeader";
 import ComparisonProducts from "@/components/comparison/ComparisonProducts";
+import ComparisonESPScore from "@/components/comparison/ComparisonESPScore";
 import ComparisonSpecifications from "@/components/comparison/ComparisonSpecifications";
 import ComparisonSummary from "@/components/comparison/ComparisonSummary";
 import ComparisonProsCons from "@/components/comparison/ComparisonProsCons";
@@ -27,11 +28,13 @@ export async function generateMetadata({
 }: PageProps): Promise<Metadata> {
   const { slug } = await params;
 
-  const comparison = getComparisonBySlug(slug);
+  const comparison =
+    getComparisonBySlug(slug);
 
   if (!comparison) {
     return {
-      title: "Comparativa no encontrada | ElectroSpainPro",
+      title:
+        "Comparativa no encontrada | ElectroSpainPro",
       description:
         "La comparativa solicitada no existe en ElectroSpainPro.",
     };
@@ -48,19 +51,24 @@ export async function generateMetadata({
   return {
     title,
     description,
-    keywords: comparison.seo?.keywords,
+    keywords:
+      comparison.seo?.keywords,
 
     alternates: {
-      canonical: `/comparativa/${comparison.slug}`,
+      canonical:
+        `/comparativa/${comparison.slug}`,
     },
 
     openGraph: {
       title,
       description,
       type: "article",
-      url: `/comparativa/${comparison.slug}`,
-      publishedTime: comparison.publishedAt,
-      siteName: "ElectroSpainPro",
+      url:
+        `/comparativa/${comparison.slug}`,
+      publishedTime:
+        comparison.publishedAt,
+      siteName:
+        "ElectroSpainPro",
     },
 
     twitter: {
@@ -85,25 +93,28 @@ function ComparisonStructuredData({
     ReturnType<typeof getComparisonBySlug>
   >;
 }) {
-  const productSchemas = comparison.products.map(
-    (product) => ({
-      "@type": "Product",
-      name: product.name,
+  const productSchemas =
+    comparison.products.map(
+      (product) => ({
+        "@type": "Product",
+        name: product.name,
 
-      brand: {
-        "@type": "Brand",
-        name: product.brand,
-      },
+        brand: {
+          "@type": "Brand",
+          name: product.brand,
+        },
 
-      model: product.mpn,
+        model: product.mpn,
 
-      sku: product.catalogId,
+        sku: product.catalogId,
 
-      description: product.shortDescription,
+        description:
+          product.shortDescription,
 
-      url: `/productos/${product.slug}`,
-    })
-  );
+        url:
+          `/productos/${product.slug}`,
+      })
+    );
 
   const faqSchema =
     comparison.faq &&
@@ -111,26 +122,33 @@ function ComparisonStructuredData({
       ? {
           "@type": "FAQPage",
 
-          mainEntity: comparison.faq.map(
-            (item) => ({
-              "@type": "Question",
+          mainEntity:
+            comparison.faq.map(
+              (item) => ({
+                "@type": "Question",
 
-              name: item.question,
+                name:
+                  item.question,
 
-              acceptedAnswer: {
-                "@type": "Answer",
-                text: item.answer,
-              },
-            })
-          ),
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text:
+                    item.answer,
+                },
+              })
+            ),
         }
       : null;
 
-  const graph: Record<string, unknown>[] = [
+  const graph: Record<
+    string,
+    unknown
+  >[] = [
     {
       "@type": "Article",
 
-      headline: comparison.title,
+      headline:
+        comparison.title,
 
       description:
         comparison.seo?.metaDescription ??
@@ -140,38 +158,54 @@ function ComparisonStructuredData({
         comparison.publishedAt,
 
       author: {
-        "@type": "Organization",
-        name: "ElectroSpainPro",
+        "@type":
+          "Organization",
+        name:
+          "ElectroSpainPro",
       },
 
       publisher: {
-        "@type": "Organization",
-        name: "ElectroSpainPro",
+        "@type":
+          "Organization",
+        name:
+          "ElectroSpainPro",
       },
 
       mainEntity: {
-        "@type": "ItemList",
+        "@type":
+          "ItemList",
 
         itemListElement:
           comparison.products.map(
-            (product, index) => ({
-              "@type": "ListItem",
+            (
+              product,
+              index
+            ) => ({
+              "@type":
+                "ListItem",
 
-              position: index + 1,
+              position:
+                index + 1,
 
               item: {
-                "@type": "Product",
+                "@type":
+                  "Product",
 
-                name: product.name,
+                name:
+                  product.name,
 
                 brand: {
-                  "@type": "Brand",
-                  name: product.brand,
+                  "@type":
+                    "Brand",
+                  name:
+                    product.brand,
                 },
 
-                model: product.mpn,
+                model:
+                  product.mpn,
 
-                sku: product.catalogId,
+                sku:
+                  product.catalogId,
 
                 url:
                   `/productos/${product.slug}`,
@@ -189,7 +223,8 @@ function ComparisonStructuredData({
   }
 
   const structuredData = {
-    "@context": "https://schema.org",
+    "@context":
+      "https://schema.org",
     "@graph": graph,
   };
 
@@ -209,7 +244,8 @@ function ComparisonStructuredData({
 export default async function ComparisonPage({
   params,
 }: PageProps) {
-  const { slug } = await params;
+  const { slug } =
+    await params;
 
   const comparison =
     getComparisonBySlug(slug);
@@ -226,45 +262,72 @@ export default async function ComparisonPage({
 
       <main className="mx-auto max-w-7xl px-6 py-12">
         <ComparisonHeader
-          title={comparison.title}
-          summary={comparison.summary}
+          title={
+            comparison.title
+          }
+          summary={
+            comparison.summary
+          }
         />
 
         <ComparisonProducts
-          products={comparison.products}
+          products={
+            comparison.products
+          }
+        />
+
+        <ComparisonESPScore
+          products={
+            comparison.products
+          }
         />
 
         <ComparisonSpecifications
-          products={comparison.products}
+          products={
+            comparison.products
+          }
         />
 
         <ComparisonSummary
-          products={comparison.products}
+          products={
+            comparison.products
+          }
         />
 
         <ComparisonProsCons
-          products={comparison.products}
+          products={
+            comparison.products
+          }
         />
 
         <ComparisonCTA
-          products={comparison.products}
+          products={
+            comparison.products
+          }
         />
 
-        {comparison.criteria.length > 0 && (
+        {comparison.criteria
+          .length > 0 && (
           <ComparisonCriteria
-            criteria={comparison.criteria}
+            criteria={
+              comparison.criteria
+            }
           />
         )}
 
         {comparison.verdict &&
           comparison.winner && (
             <ComparisonVerdict
-              winner={comparison.winner}
+              winner={
+                comparison.winner
+              }
             />
           )}
 
         <ComparisonFAQ
-          faq={comparison.faq}
+          faq={
+            comparison.faq
+          }
         />
       </main>
     </>

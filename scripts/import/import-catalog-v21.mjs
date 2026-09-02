@@ -26,9 +26,11 @@ const BACKUP_DIR = path.join(
   "backups"
 );
 
-const isDryRun =
-  process.argv.includes("--dry-run");
+const isDryRun = process.argv.includes("--dry-run");
 
+/**
+ * Normaliza valores procedentes de Excel/TypeScript.
+ */
 function normalize(value) {
   if (
     value === undefined ||
@@ -40,12 +42,11 @@ function normalize(value) {
   return String(value).trim();
 }
 
-function getRows(
-  workbook,
-  sheetName
-) {
-  const worksheet =
-    workbook.Sheets[sheetName];
+/**
+ * Obtiene las filas de una hoja Excel.
+ */
+function getRows(workbook, sheetName) {
+  const worksheet = workbook.Sheets[sheetName];
 
   if (!worksheet) {
     return [];
@@ -59,23 +60,35 @@ function getRows(
   );
 }
 
+/**
+ * Escapa valores para introducirlos
+ * como strings TypeScript.
+ */
 function escapeString(value) {
   return String(value ?? "")
     .replace(/\\/g, "\\\\")
     .replace(/"/g, '\\"');
 }
 
-/*
- * Lee los productos existentes de
- * data/products.ts.
+/**
+ * Lee data/products.ts y extrae los campos
+ * maestros necesarios para comparar.
  *
- * Solamente extraemos los campos
- * necesarios para comparar.
+ * IMPORTANTE:
+ * No intenta reconstruir el objeto completo.
+ * El objeto completo puede contener:
+ * - espScore
+ * - specifications
+ * - affiliateLinks
+ * - seo
+ * - relaciones
+ * - etc.
+ *
+ * Solo extraemos los campos que controla
+ * directamente IMPORT_PRODUCTS_TS.
  */
 function extractProductsTs() {
-  if (
-    !fs.existsSync(PRODUCTS_PATH)
-  ) {
+  if (!fs.existsSync(PRODUCTS_PATH)) {
     console.error(
       `❌ No existe ${PRODUCTS_PATH}`
     );
@@ -83,118 +96,78 @@ function extractProductsTs() {
     process.exit(1);
   }
 
-  const source =
-    fs.readFileSync(
-      PRODUCTS_PATH,
-      "utf8"
-    );
+  const source = fs.readFileSync(
+    PRODUCTS_PATH,
+    "utf8"
+  );
 
   const products = [];
 
-  const catalogMatches =
-    source.matchAll(
-      /catalogId:\s*"([^"]+)"/g
+  const catalogMatches = source.matchAll(
+    /catalogId\s*:\s*"([^"]+)"/g
+  );
+
+  for (const match of catalogMatches) {
+    const catalogId = normalize(match[1]);
+
+    const block = findProductBlock(
+      source,
+      catalogId
     );
 
-  for (
-    const match
-    of catalogMatches
-  ) {
-    const catalogId =
-      normalize(match[1]);
+    if (!block) {
+      continue;
+    }
 
-    const start =
-      Math.max(
-        0,
-        match.index - 1000
-      );
+    const productSource = block.text;
 
-    const end =
-      Math.min(
-        source.length,
-        match.index + 3000
-      );
+    const brandMatch = productSource.match(
+      /\bbrand\s*:\s*"([^"]*)"/
+    );
 
-    const context =
-      source.slice(
-        start,
-        end
-      );
+    const mpnMatch = productSource.match(
+      /\bmpn\s*:\s*"([^"]*)"/
+    );
 
-    const brandMatch =
-      context.match(
-        /brand:\s*"([^"]+)"/
-      );
+    const nameMatch = productSource.match(
+      /\bname\s*:\s*"([^"]*)"/
+    );
 
-    const mpnMatch =
-      context.match(
-        /mpn:\s*"([^"]+)"/
-      );
+    const categoryMatch = productSource.match(
+      /\bcategory\s*:\s*"([^"]*)"/
+    );
 
-    const nameMatch =
-      context.match(
-        /name:\s*"([^"]+)"/
-      );
+    const subcategoryMatch = productSource.match(
+      /\bsubcategory\s*:\s*"([^"]*)"/
+    );
 
-    const categoryMatch =
-      context.match(
-        /category:\s*"([^"]+)"/
-      );
-
-    const subcategoryMatch =
-      context.match(
-        /subcategory:\s*"([^"]+)"/
-      );
-
-    const eanMatch =
-      context.match(
-        /ean:\s*"([^"]+)"/
-      );
+    const eanMatch = productSource.match(
+      /\bean\s*:\s*"([^"]*)"/
+    );
 
     products.push({
       catalogId,
-
-      brand: normalize(
-        brandMatch?.[1]
-      ),
-
-      mpn: normalize(
-        mpnMatch?.[1]
-      ),
-
-      name: normalize(
-        nameMatch?.[1]
-      ),
-
-      category: normalize(
-        categoryMatch?.[1]
-      ),
-
-      subcategory: normalize(
-        subcategoryMatch?.[1]
-      ),
-
-      ean: normalize(
-        eanMatch?.[1]
-      ),
+      brand: normalize(brandMatch?.[1]),
+      mpn: normalize(mpnMatch?.[1]),
+      name: normalize(nameMatch?.[1]),
+      category: normalize(categoryMatch?.[1]),
+      subcategory: normalize(subcategoryMatch?.[1]),
+      ean: normalize(eanMatch?.[1]),
     });
   }
 
   return products;
 }
 
-/*
- * Convierte las filas de Excel en
- * productos normalizados.
+/**
+ * Convierte las filas de Excel en productos
+ * normalizados.
  */
-function buildExcelProducts(
-  workbook
-) {
-  const rows =
-    getRows(
-      workbook,
-      "IMPORT_PRODUCTS_TS"
-    );
+function buildExcelProducts(workbook) {
+  const rows = getRows(
+    workbook,
+    "IMPORT_PRODUCTS_TS"
+  );
 
   return rows
     .filter((row) =>
@@ -207,99 +180,407 @@ function buildExcelProducts(
       normalizeCatalogProduct({
         catalogId:
           row.product_id,
-
         brand:
           row.brand,
-
         mpn:
           row.mpn,
-
         name:
           row.name,
-
         category:
           row.category,
-
         subcategory:
           row.subcategory,
-
         ean:
           row.ean,
-
         status:
           row.status,
       })
     );
 }
 
-/*
- * Localiza TODOS los bloques de productos
- * de data/products.ts.
+/**
+ * ------------------------------------------------------------------
+ * PARSER ESTRUCTURAL DE PRODUCTOS
+ * ------------------------------------------------------------------
  *
- * Buscamos bloques que empiezan por:
+ * El parser anterior utilizaba una expresión regular para localizar
+ * bloques completos:
  *
  *   {
- *
- * y terminan en:
- *
+ *      ...
  *   },
  *
- * justo antes del siguiente producto
- * o del cierre del array.
+ * Eso deja de ser fiable cuando los productos contienen objetos,
+ * arrays, strings complejos, affiliateLinks, espScore, etc.
  *
- * Esto evita depender de que haya
- * exactamente una línea en blanco
- * entre propiedades.
+ * Aquí localizamos el objeto por catalogId y calculamos su cierre
+ * real respetando:
+ *
+ * - objetos {}
+ * - arrays []
+ * - strings ""
+ * - strings ''
+ * - template literals ``
+ * - comentarios // ...
+ * - comentarios /* ... *\/
+ *
+ * De esta forma el contenido interno del producto puede crecer
+ * libremente sin romper el importador.
+ * ------------------------------------------------------------------
  */
-function getProductBlocks(source) {
-  const blocks = [];
 
-  const pattern =
-    /\n  \{[\s\S]*?\n  \},(?=\n\n  \{|\n\];)/g;
+/**
+ * Determina si estamos ante un carácter escapado.
+ */
+function isEscaped(source, index) {
+  let backslashes = 0;
+  let cursor = index - 1;
 
-  for (
-    const match
-    of source.matchAll(pattern)
+  while (
+    cursor >= 0 &&
+    source[cursor] === "\\"
   ) {
-    blocks.push({
-      text: match[0],
-      index: match.index,
-    });
+    backslashes += 1;
+    cursor -= 1;
   }
 
-  return blocks;
+  return backslashes % 2 === 1;
 }
 
-/*
- * Busca el bloque exacto por catalogId.
+/**
+ * Encuentra el objeto TypeScript que contiene
+ * un catalogId determinado.
  */
-function findProductBlock(
+function findProductBlock(source, catalogId) {
+  const catalogPattern = new RegExp(
+    `\\bcatalogId\\s*:\\s*"${escapeRegExp(catalogId)}"`
+  );
+
+  const catalogMatch =
+    catalogPattern.exec(source);
+
+  if (!catalogMatch) {
+    return null;
+  }
+
+  const catalogIndex =
+    catalogMatch.index;
+
+  /**
+   * Buscamos hacia atrás el { que abre
+   * el objeto del producto.
+   *
+   * No basta con buscar el primer { anterior:
+   * debemos encontrar el último { que pueda
+   * contener este catalogId.
+   */
+  const openingBrace =
+    findOpeningBraceForCatalog(
+      source,
+      catalogIndex
+    );
+
+  if (openingBrace === -1) {
+    return null;
+  }
+
+  const closingBrace =
+    findMatchingBrace(
+      source,
+      openingBrace
+    );
+
+  if (closingBrace === -1) {
+    return null;
+  }
+
+  /**
+   * Incluimos la coma posterior al objeto
+   * cuando existe.
+   *
+   * Ejemplo:
+   *
+   * {
+   *   catalogId: "P001",
+   *   ...
+   * },
+   *
+   * Esto permite conservar exactamente
+   * la estructura del array.
+   */
+  let end = closingBrace + 1;
+
+  while (
+    end < source.length &&
+    /\s/.test(source[end])
+  ) {
+    end += 1;
+  }
+
+  if (source[end] === ",") {
+    end += 1;
+  }
+
+  const start = openingBrace;
+
+  return {
+    text: source.slice(start, end),
+    start,
+    end,
+  };
+}
+
+/**
+ * Escapa un valor para utilizarlo dentro
+ * de una expresión regular.
+ */
+function escapeRegExp(value) {
+  return String(value).replace(
+    /[.*+?^${}()|[\]\\]/g,
+    "\\$&"
+  );
+}
+
+/**
+ * Busca hacia atrás el { que corresponde
+ * al objeto que contiene catalogId.
+ *
+ * Utilizamos un análisis estructural desde
+ * el inicio de la fuente para evitar errores
+ * provocados por objetos anidados.
+ */
+function findOpeningBraceForCatalog(
   source,
-  catalogId
+  catalogIndex
 ) {
-  const blocks =
-    getProductBlocks(source);
+  const stack = [];
+
+  let stringQuote = null;
+  let inLineComment = false;
+  let inBlockComment = false;
 
   for (
-    const block
-    of blocks
+    let index = 0;
+    index < catalogIndex;
+    index += 1
   ) {
-    const match =
-      block.text.match(
-        /catalogId:\s*"([^"]+)"/
-      );
+    const char = source[index];
+    const next = source[index + 1];
+
+    if (inLineComment) {
+      if (char === "\n") {
+        inLineComment = false;
+      }
+
+      continue;
+    }
+
+    if (inBlockComment) {
+      if (
+        char === "*" &&
+        next === "/"
+      ) {
+        inBlockComment = false;
+        index += 1;
+      }
+
+      continue;
+    }
+
+    if (stringQuote) {
+      if (
+        char === stringQuote &&
+        !isEscaped(source, index)
+      ) {
+        stringQuote = null;
+      }
+
+      continue;
+    }
 
     if (
-      match &&
-      match[1] === catalogId
+      char === "/" &&
+      next === "/"
     ) {
-      return block;
+      inLineComment = true;
+      index += 1;
+      continue;
+    }
+
+    if (
+      char === "/" &&
+      next === "*"
+    ) {
+      inBlockComment = true;
+      index += 1;
+      continue;
+    }
+
+    if (
+      char === '"' ||
+      char === "'" ||
+      char === "`"
+    ) {
+      stringQuote = char;
+      continue;
+    }
+
+    if (
+      char === "{" ||
+      char === "["
+    ) {
+      stack.push({
+        char,
+        index,
+      });
+
+      continue;
+    }
+
+    if (
+      char === "}" ||
+      char === "]"
+    ) {
+      if (stack.length === 0) {
+        continue;
+      }
+
+      const expected =
+        char === "}"
+          ? "{"
+          : "[";
+
+      if (
+        stack[stack.length - 1].char ===
+        expected
+      ) {
+        stack.pop();
+      }
     }
   }
 
-  return null;
+  /**
+   * El último { abierto antes de catalogId
+   * es el candidato al objeto del producto.
+   *
+   * Debemos comprobar que no esté dentro
+   * de un array/objeto anidado.
+   */
+  for (
+    let index = stack.length - 1;
+    index >= 0;
+    index -= 1
+  ) {
+    if (
+      stack[index].char === "{"
+    ) {
+      return stack[index].index;
+    }
+  }
+
+  return -1;
 }
 
+/**
+ * Encuentra la llave } que cierra el objeto
+ * abierto en openingIndex.
+ */
+function findMatchingBrace(
+  source,
+  openingIndex
+) {
+  let depth = 0;
+
+  let stringQuote = null;
+  let inLineComment = false;
+  let inBlockComment = false;
+
+  for (
+    let index = openingIndex;
+    index < source.length;
+    index += 1
+  ) {
+    const char = source[index];
+    const next = source[index + 1];
+
+    if (inLineComment) {
+      if (char === "\n") {
+        inLineComment = false;
+      }
+
+      continue;
+    }
+
+    if (inBlockComment) {
+      if (
+        char === "*" &&
+        next === "/"
+      ) {
+        inBlockComment = false;
+        index += 1;
+      }
+
+      continue;
+    }
+
+    if (stringQuote) {
+      if (
+        char === stringQuote &&
+        !isEscaped(source, index)
+      ) {
+        stringQuote = null;
+      }
+
+      continue;
+    }
+
+    if (
+      char === "/" &&
+      next === "/"
+    ) {
+      inLineComment = true;
+      index += 1;
+      continue;
+    }
+
+    if (
+      char === "/" &&
+      next === "*"
+    ) {
+      inBlockComment = true;
+      index += 1;
+      continue;
+    }
+
+    if (
+      char === '"' ||
+      char === "'" ||
+      char === "`"
+    ) {
+      stringQuote = char;
+      continue;
+    }
+
+    if (char === "{") {
+      depth += 1;
+      continue;
+    }
+
+    if (char === "}") {
+      depth -= 1;
+
+      if (depth === 0) {
+        return index;
+      }
+    }
+  }
+
+  return -1;
+}
+
+/**
+ * Reemplaza un campo string existente.
+ */
 function replaceField(
   block,
   field,
@@ -308,15 +589,12 @@ function replaceField(
   const escaped =
     escapeString(value);
 
-  const pattern =
-    new RegExp(
-      `(\\n    ${field}:\\s*)"[^"]*"`,
-      "m"
-    );
+  const pattern = new RegExp(
+    `(\\n[ \\t]+${escapeRegExp(field)}\\s*:\\s*)"[^"]*"`,
+    "m"
+  );
 
-  if (
-    !pattern.test(block)
-  ) {
+  if (!pattern.test(block)) {
     return block;
   }
 
@@ -326,6 +604,10 @@ function replaceField(
   );
 }
 
+/**
+ * Añade un campo string después de
+ * otro campo existente.
+ */
 function addFieldAfter(
   block,
   afterField,
@@ -335,15 +617,12 @@ function addFieldAfter(
   const escaped =
     escapeString(value);
 
-  const pattern =
-    new RegExp(
-      `(\\n    ${afterField}:\\s*"[^"]*",)`,
-      "m"
-    );
+  const pattern = new RegExp(
+    `(\\n[ \\t]+${escapeRegExp(afterField)}\\s*:\\s*"[^"]*",)`,
+    "m"
+  );
 
-  if (
-    !pattern.test(block)
-  ) {
+  if (!pattern.test(block)) {
     return block;
   }
 
@@ -353,12 +632,16 @@ function addFieldAfter(
   );
 }
 
-/*
+/**
  * MERGE
  *
- * Solo modifica campos maestros.
+ * El Excel V21 controla los campos maestros.
  *
- * NO modifica:
+ * No eliminamos ni reconstruimos el resto
+ * del objeto TypeScript.
+ *
+ * Por tanto se conservan:
+ *
  * - slug
  * - image
  * - price
@@ -372,16 +655,18 @@ function addFieldAfter(
  * - relations
  * - seo
  * - verification
+ * - cualquier campo futuro
+ *
+ * que no pertenezca a IMPORT_PRODUCTS_TS.
  */
 function mergeProductBlock(
   block,
   excelProduct,
   currentProduct
 ) {
-  let result =
-    block;
+  let result = block;
 
-  /*
+  /**
    * MARCA
    */
   if (
@@ -389,15 +674,14 @@ function mergeProductBlock(
     excelProduct.brand !==
       currentProduct.brand
   ) {
-    result =
-      replaceField(
-        result,
-        "brand",
-        excelProduct.brand
-      );
+    result = replaceField(
+      result,
+      "brand",
+      excelProduct.brand
+    );
   }
 
-  /*
+  /**
    * MPN
    */
   if (
@@ -405,15 +689,14 @@ function mergeProductBlock(
     excelProduct.mpn !==
       currentProduct.mpn
   ) {
-    result =
-      replaceField(
-        result,
-        "mpn",
-        excelProduct.mpn
-      );
+    result = replaceField(
+      result,
+      "mpn",
+      excelProduct.mpn
+    );
   }
 
-  /*
+  /**
    * CATEGORÍA
    *
    * Ya llega normalizada desde
@@ -424,15 +707,14 @@ function mergeProductBlock(
     excelProduct.category !==
       currentProduct.category
   ) {
-    result =
-      replaceField(
-        result,
-        "category",
-        excelProduct.category
-      );
+    result = replaceField(
+      result,
+      "category",
+      excelProduct.category
+    );
   }
 
-  /*
+  /**
    * SUBCATEGORÍA
    */
   if (
@@ -440,15 +722,14 @@ function mergeProductBlock(
     excelProduct.subcategory !==
       currentProduct.subcategory
   ) {
-    result =
-      replaceField(
-        result,
-        "subcategory",
-        excelProduct.subcategory
-      );
+    result = replaceField(
+      result,
+      "subcategory",
+      excelProduct.subcategory
+    );
   }
 
-  /*
+  /**
    * EAN
    *
    * Regla conservadora:
@@ -462,30 +743,32 @@ function mergeProductBlock(
     !currentProduct.ean
   ) {
     if (
-      /ean:\s*"[^"]*"/.test(
+      /(?:\n[ \t]+)ean\s*:\s*"[^"]*"/.test(
         result
       )
     ) {
-      result =
-        replaceField(
-          result,
-          "ean",
-          excelProduct.ean
-        );
+      result = replaceField(
+        result,
+        "ean",
+        excelProduct.ean
+      );
     } else {
-      result =
-        addFieldAfter(
-          result,
-          "mpn",
-          "ean",
-          excelProduct.ean
-        );
+      result = addFieldAfter(
+        result,
+        "mpn",
+        "ean",
+        excelProduct.ean
+      );
     }
   }
 
   return result;
 }
 
+/**
+ * Crea backup de products.ts antes
+ * de una importación real.
+ */
 function createBackup() {
   fs.mkdirSync(
     BACKUP_DIR,
@@ -516,6 +799,12 @@ function createBackup() {
   return backupPath;
 }
 
+/**
+ * ------------------------------------------------------------------
+ * VALIDACIONES INICIALES
+ * ------------------------------------------------------------------
+ */
+
 if (
   !fs.existsSync(
     CATALOG_PATH
@@ -539,6 +828,12 @@ if (
 
   process.exit(1);
 }
+
+/**
+ * ------------------------------------------------------------------
+ * CARGA
+ * ------------------------------------------------------------------
+ */
 
 const workbook =
   XLSX.readFile(
@@ -611,6 +906,12 @@ console.log(
 
 console.log("");
 
+/**
+ * ------------------------------------------------------------------
+ * PROCESAMIENTO
+ * ------------------------------------------------------------------
+ */
+
 for (
   const excelProduct
   of excelProducts
@@ -666,19 +967,10 @@ for (
       currentProduct
     );
 
-  if (
-    mergedBlock ===
-    block.text
-  ) {
-    console.log(
-      "🟢 Sin cambios necesarios."
-    );
-
-    productsUnchanged += 1;
-
-    continue;
-  }
-
+  /**
+   * Detectamos únicamente cambios
+   * en campos realmente importables.
+   */
   const fieldChanges = [];
 
   if (
@@ -730,16 +1022,15 @@ for (
     );
   }
 
-  /*
-   * Si el bloque cambia pero no hay
-   * ningún campo maestro que cambiar,
-   * lo consideramos sin cambios.
+  /**
+   * Si no hay cambios maestros,
+   * no hacemos nada.
    */
   if (
     fieldChanges.length === 0
   ) {
     console.log(
-      "🟢 Diferencias fuera de campos importables."
+      "🟢 Sin cambios necesarios."
     );
 
     productsUnchanged += 1;
@@ -769,6 +1060,12 @@ for (
     fieldChanges,
   });
 }
+
+/**
+ * ------------------------------------------------------------------
+ * RESUMEN
+ * ------------------------------------------------------------------
+ */
 
 console.log("");
 
@@ -808,9 +1105,12 @@ console.log(
 
 console.log("");
 
-/*
+/**
+ * ------------------------------------------------------------------
  * DRY RUN
+ * ------------------------------------------------------------------
  */
+
 if (isDryRun) {
   console.log(
     "⚠️ DRY RUN"
@@ -829,9 +1129,12 @@ if (isDryRun) {
   );
 }
 
-/*
+/**
+ * ------------------------------------------------------------------
  * IMPORTACIÓN REAL
+ * ------------------------------------------------------------------
  */
+
 if (
   conflicts > 0
 ) {
@@ -856,9 +1159,12 @@ if (
   process.exit(0);
 }
 
-/*
+/**
+ * ------------------------------------------------------------------
  * BACKUP
+ * ------------------------------------------------------------------
  */
+
 const backupPath =
   createBackup();
 
@@ -866,20 +1172,44 @@ console.log(
   `💾 Backup creado: ${backupPath}`
 );
 
-/*
- * Aplicamos los cambios.
+/**
+ * ------------------------------------------------------------------
+ * APLICACIÓN
+ * ------------------------------------------------------------------
+ *
+ * Importante:
+ *
+ * Aplicamos los cambios desde el final
+ * hacia el principio.
+ *
+ * Así las posiciones de los bloques
+ * anteriores no se ven afectadas por
+ * modificaciones de longitud.
+ * ------------------------------------------------------------------
  */
+
+const orderedChanges =
+  [...changes].sort(
+    (a, b) =>
+      b.block.start -
+      a.block.start
+  );
+
 let updatedSource =
   source;
 
 for (
   const change
-  of changes
+  of orderedChanges
 ) {
   updatedSource =
-    updatedSource.replace(
-      change.block.text,
-      change.mergedBlock
+    updatedSource.slice(
+      0,
+      change.block.start
+    ) +
+    change.mergedBlock +
+    updatedSource.slice(
+      change.block.end
     );
 }
 

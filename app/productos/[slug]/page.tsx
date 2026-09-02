@@ -1,22 +1,23 @@
 import { notFound } from "next/navigation";
 
+import AdSlot from "@/components/ads/AdSlot";
+
 import ProductBreadcrumb from "@/components/product/ProductBreadcrumb";
 import ProductImage from "@/components/product/ProductImage";
 import ProductHeader from "@/components/product/ProductHeader";
 import ProductESPScore from "@/components/product/ProductESPScore";
-import ProductAffiliateButtons from "@/components/product/ProductAffiliateButtons";
-import ProductSpecifications from "@/components/product/ProductSpecifications";
+import ProductOffers from "@/components/product/ProductOffers";
 import ProductProsCons from "@/components/product/ProductProsCons";
+import ProductSpecifications from "@/components/product/ProductSpecifications";
 import ProductRelated from "@/components/product/ProductRelated";
 import ProductCTA from "@/components/product/ProductCTA";
 
 import {
-  getVariantProducts,
+  getProductBySlug,
   getRelatedProducts,
-  getComparisonProducts,
-} from "@/lib/relations";
+} from "@/lib/products";
 
-import { getProductBySlug } from "@/lib/products";
+import { getOffersByProductId } from "@/lib/offers";
 
 interface PageProps {
   params: Promise<{
@@ -29,86 +30,151 @@ export default async function ProductPage({
 }: PageProps) {
   const { slug } = await params;
 
-  const product =
-    getProductBySlug(slug);
+  /*
+   * ==========================================================
+   * PRODUCTO
+   * ==========================================================
+   */
+
+  const product = getProductBySlug(slug);
 
   if (!product) {
     notFound();
   }
 
-  const variantProducts =
-    getVariantProducts(
-      product.catalogId
+  /*
+   * ==========================================================
+   * OFERTAS COMERCIALES
+   * ==========================================================
+   *
+   * Las ofertas se obtienen mediante el catalogId del producto.
+   *
+   * Ejemplo:
+   *
+   * producto P005
+   *       ↓
+   * getOffersByProductId("P005")
+   *       ↓
+   * ofertas asociadas al producto
+   *
+   * De esta forma la ficha no depende directamente de
+   * product.affiliateLinks.
+   */
+
+  const productOffers = getOffersByProductId(
+    product.catalogId,
+  );
+
+  /*
+   * ==========================================================
+   * RELACIONES EDITORIALES
+   * ==========================================================
+   */
+
+  const productRelations =
+    getRelatedProducts(product.catalogId);
+
+  const variants =
+    productRelations.filter(
+      (item) =>
+        item.relation.type === "variant",
     );
 
-  const relatedProducts =
-    getRelatedProducts(
-      product.catalogId
+  const related =
+    productRelations.filter(
+      (item) =>
+        item.relation.type === "related",
     );
 
-  const comparisonProducts =
-    getComparisonProducts(
-      product.catalogId
+  const comparisons =
+    productRelations.filter(
+      (item) =>
+        item.relation.type === "comparison",
     );
 
-  const affiliateLinks = [];
-
-  if (product.affiliateLinks.amazon) {
-    affiliateLinks.push({
-      store: "Amazon",
-      url: product.affiliateLinks.amazon,
-    });
-  }
-
-  if (product.affiliateLinks.manomano) {
-    affiliateLinks.push({
-      store: "ManoMano",
-      url: product.affiliateLinks.manomano,
-    });
-  }
-
-  if (product.affiliateLinks.rs) {
-    affiliateLinks.push({
-      store: "RS",
-      url: product.affiliateLinks.rs,
-    });
-  }
-
-  if (product.affiliateLinks.farnell) {
-    affiliateLinks.push({
-      store: "Farnell",
-      url: product.affiliateLinks.farnell,
-    });
-  }
-
-  if (product.affiliateLinks.leroymerlin) {
-    affiliateLinks.push({
-      store: "Leroy Merlin",
-      url: product.affiliateLinks.leroymerlin,
-    });
-  }
+  /*
+   * ==========================================================
+   * RENDER
+   * ==========================================================
+   */
 
   return (
-    <main className="mx-auto max-w-7xl px-6 py-12">
+    <main className="mx-auto w-full max-w-[1400px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
+
+      {/* ======================================================
+          BREADCRUMB
+      ====================================================== */}
+
       <ProductBreadcrumb
         category={product.category}
         subcategory={product.subcategory}
         product={product.name}
       />
 
-      <ProductImage
-        image={product.image}
-        name={product.name}
+      {/* ======================================================
+          CABECERA DEL PRODUCTO
+      ====================================================== */}
+
+      <div
+        className="mb-8 grid gap-6"
+        style={{
+          gridTemplateColumns:
+            "repeat(2, minmax(0, 1fr))",
+        }}
+      >
+        <ProductImage
+          image={product.image}
+          name={product.name}
+        />
+
+        <ProductHeader
+          name={product.name}
+          brand={product.brand}
+          rating={product.rating}
+          shortDescription={
+            product.shortDescription
+          }
+        />
+      </div>
+
+      {/* ======================================================
+          ESP SCORE
+      ====================================================== */}
+
+      <ProductESPScore
+        score={product.espScore}
+        pros={product.pros}
+        cons={product.cons}
       />
 
-      <ProductHeader
-        name={product.name}
-        brand={product.brand}
-        rating={product.rating}
-        shortDescription={
-          product.shortDescription
-        }
+      {/* ======================================================
+          PUBLICIDAD
+      ====================================================== */}
+
+      <AdSlot />
+
+      {/* ======================================================
+          COMPARADOR DE OFERTAS
+      ====================================================== */}
+
+      <ProductOffers
+        offers={productOffers}
       />
+
+      {/* ======================================================
+          VENTAJAS + INCONVENIENTES
+      ====================================================== */}
+
+      <section className="mt-8">
+        <ProductProsCons
+          pros={product.pros}
+          cons={product.cons}
+        />
+      </section>
+
+      {/* ======================================================
+          ESPECIFICACIONES TÉCNICAS
+      ====================================================== */}
 
       <ProductSpecifications
         specifications={
@@ -116,32 +182,24 @@ export default async function ProductPage({
         }
       />
 
-      <ProductESPScore
-        score={product.espScore}
-      />
-
-      <ProductAffiliateButtons
-        affiliateLinks={
-          affiliateLinks
-        }
-      />
-
-      <ProductProsCons
-        pros={product.pros}
-        cons={product.cons}
-      />
+      {/* ======================================================
+          RELACIONES DEL PRODUCTO
+      ====================================================== */}
 
       <ProductRelated
-        variants={variantProducts}
-        related={relatedProducts}
-        comparisons={
-          comparisonProducts
-        }
+        variants={variants}
+        related={related}
+        comparisons={comparisons}
       />
+
+      {/* ======================================================
+          CTA FINAL
+      ====================================================== */}
 
       <ProductCTA
         title={product.name}
       />
+
     </main>
   );
 }

@@ -1,36 +1,49 @@
+import type {
+  ESPEvidence,
+} from "@/types/evidence";
+
 /**
  * Metodología ESP Score de ElectroSpainPro.
  *
  * El ESP Score es una valoración editorial propia.
  *
- * Cada criterio se valora de 0 a 10.
- * Mientras un criterio no haya sido evaluado,
- * su puntuación puede permanecer como null.
+ * Cada criterio se valora de 0 a 10 y tiene una
+ * ponderación específica dentro de la puntuación global.
  */
 
+/**
+ * Criterio individual del ESP Score.
+ */
 export interface ESPScoreCriterion {
   /**
    * Puntuación del criterio.
    *
    * Rango permitido: 0 a 10.
-   *
-   * null significa que el criterio todavía
-   * está pendiente de valoración.
    */
-  score: number | null;
+  score: number;
 
   /**
    * Justificación editorial de la puntuación.
-   *
-   * Puede permanecer vacía mientras el criterio
-   * esté pendiente.
    */
   reason: string;
 
   /**
    * Fuentes utilizadas para respaldar la valoración.
+   *
+   * Se mantiene por compatibilidad con los datos
+   * actuales del catálogo.
    */
   sources?: string[];
+
+  /**
+   * Evidencias estructuradas utilizadas para
+   * respaldar la valoración.
+   *
+   * Permite diferenciar entre información del
+   * fabricante, distribuidores, instaladores,
+   * experiencia de campo y fuentes independientes.
+   */
+  evidence?: ESPEvidence[];
 }
 
 /**
@@ -54,6 +67,15 @@ export interface ESPScoreCriteria {
 
 /**
  * Nivel de confianza de la valoración.
+ *
+ * high:
+ * Información suficiente y contrastada.
+ *
+ * medium:
+ * Información fiable pero con algunas limitaciones.
+ *
+ * low:
+ * Información insuficiente para una valoración sólida.
  */
 export type ESPScoreConfidence =
   | "high"
@@ -64,10 +86,10 @@ export type ESPScoreConfidence =
  * Estado editorial del ESP Score.
  *
  * pending:
- * Todavía no está valorado completamente.
+ * Todavía no está valorado.
  *
  * reviewed:
- * La valoración completa ha sido revisada.
+ * La valoración ha sido revisada internamente.
  *
  * published:
  * La valoración puede mostrarse como oficial.
@@ -78,19 +100,20 @@ export type ESPScoreStatus =
   | "published";
 
 /**
- * Puntuación completa o pendiente de ElectroSpainPro.
+ * Puntuación completa de ElectroSpainPro.
  */
 export interface ESPScore {
   /**
-   * Criterios individuales.
+   * Criterios individuales con puntuación,
+   * justificación y evidencias.
    */
   criteria: ESPScoreCriteria;
 
   /**
-   * Puntuación global.
+   * Puntuación global calculada.
    *
-   * null mientras no estén disponibles
-   * todos los criterios necesarios.
+   * Puede ser null cuando todavía no existe
+   * una valoración global disponible.
    */
   overall: number | null;
 
@@ -134,7 +157,7 @@ export interface ESPIndex {
 }
 
 /**
- * Pesos oficiales de la metodología ESP Score v1.0.
+ * Pesos oficiales de la metodología ESP Score.
  *
  * La suma debe ser exactamente 1.
  */

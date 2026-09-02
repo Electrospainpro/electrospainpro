@@ -30,4 +30,34 @@ export const guides: Guide[] = [
 
     publishedAt: "2026-07-12",
   },
+  {
+    id: 2,
+    title: "Cómo elegir un multímetro para electricista",
+    slug: "como-elegir-multimetro",
+    category: "herramientas",
+    summary: "Cómo elegir un multímetro para electricista. Contenido editorial pendiente de desarrollo.",
+    content:
+      "Contenido editorial pendiente de desarrollo.",
+    relatedProducts: [
+      products.find((product) => product.catalogId === "P004")!
+    ],
+    relatedComparisons: [],
+    publishedAt: "",
+  },
+  {
+    id: 3,
+    title: "Pinza amperimétrica vs multímetro",
+    slug: "pinza-amperimetrica-o-multimetro",
+    category: "herramientas",
+    summary: "Pinza amperimétrica vs multímetro. Contenido editorial pendiente de desarrollo.",
+    content:
+      "Contenido editorial pendiente de desarrollo.",
+    relatedProducts: [
+      products.find((product) => product.catalogId === "P004")!,
+      products.find((product) => product.catalogId === "P005")!,
+      products.find((product) => product.catalogId === "P006")!
+    ],
+    relatedComparisons: [],
+    publishedAt: "",
+  }
 ];

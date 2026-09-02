@@ -8,36 +8,62 @@ export default function ProductProsCons({
   cons,
 }: ProductProsConsProps) {
   return (
-    <section className="mb-10 grid gap-8 md:grid-cols-2">
-      <div className="rounded-xl border border-green-200 bg-green-50 p-6">
-        <h2 className="mb-4 text-2xl font-bold text-green-700">
+    <>
+      <section className="h-full rounded-[14px] border border-emerald-200 bg-emerald-50/50 p-5">
+        <h3 className="text-[18px] font-bold tracking-tight text-emerald-700">
           Ventajas
-        </h2>
+        </h3>
 
-        <ul className="space-y-3">
+        <p className="mt-1.5 text-[11px] leading-4 text-slate-500">
+          Puntos destacados del producto
+        </p>
+
+        <ul className="mt-4 space-y-2">
           {pros.map((pro) => (
-            <li key={pro} className="flex gap-2">
-              <span>✅</span>
+            <li
+              key={pro}
+              className="flex items-start gap-2 text-[11px] leading-5 text-slate-700"
+            >
+              <span
+                aria-hidden="true"
+                className="mt-0.5 shrink-0 font-bold text-emerald-600"
+              >
+                ✓
+              </span>
+
               <span>{pro}</span>
             </li>
           ))}
         </ul>
-      </div>
+      </section>
 
-      <div className="rounded-xl border border-red-200 bg-red-50 p-6">
-        <h2 className="mb-4 text-2xl font-bold text-red-700">
+      <section className="h-full rounded-[14px] border border-red-200 bg-red-50/50 p-5">
+        <h3 className="text-[18px] font-bold tracking-tight text-red-600">
           Inconvenientes
-        </h2>
+        </h3>
 
-        <ul className="space-y-3">
+        <p className="mt-1.5 text-[11px] leading-4 text-slate-500">
+          Aspectos a tener en cuenta
+        </p>
+
+        <ul className="mt-4 space-y-2">
           {cons.map((con) => (
-            <li key={con} className="flex gap-2">
-              <span>❌</span>
+            <li
+              key={con}
+              className="flex items-start gap-2 text-[11px] leading-5 text-slate-700"
+            >
+              <span
+                aria-hidden="true"
+                className="mt-0.5 shrink-0 font-bold text-red-500"
+              >
+                ×
+              </span>
+
               <span>{con}</span>
             </li>
           ))}
         </ul>
-      </div>
-    </section>
+      </section>
+    </>
   );
 }

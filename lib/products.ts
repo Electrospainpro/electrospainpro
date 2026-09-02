@@ -1,118 +1,98 @@
 import { products } from "@/data/products";
-import { offers } from "@/data/offers";
+import { relations } from "@/data/relations";
+import type { Product } from "@/types/product";
+import type { CatalogRelationType } from "@/types/relations";
 
-import type { ProductOffer } from "@/types/offer";
-
-/**
- * Devuelve todos los productos.
- */
-export function getAllProducts() {
+export function getAllProducts(): Product[] {
   return products;
 }
 
-/**
- * Devuelve un producto mediante su slug.
- */
-export function getProductBySlug(slug: string) {
+export function getProductBySlug(
+  slug: string
+): Product | undefined {
   return products.find(
     (product) => product.slug === slug
   );
 }
 
-/**
- * Devuelve productos pertenecientes a una categoría.
- */
-export function getProductsByCategory(category: string) {
+export function getProductByCatalogId(
+  catalogId: string
+): Product | undefined {
+  return products.find(
+    (product) => product.catalogId === catalogId
+  );
+}
+
+export function getProductsByCategory(
+  category: string
+): Product[] {
   return products.filter(
     (product) => product.category === category
   );
 }
 
-/**
- * Devuelve productos pertenecientes a una subcategoría.
- */
 export function getProductsBySubcategory(
   subcategory: string
-) {
+): Product[] {
   return products.filter(
     (product) => product.subcategory === subcategory
   );
 }
 
-/**
- * Devuelve productos de una marca.
- */
-export function getProductsByBrand(brand: string) {
+export function getProductsByBrand(
+  brand: string
+): Product[] {
   return products.filter(
     (product) => product.brand === brand
   );
 }
 
 /**
- * Devuelve todas las ofertas del sistema.
- *
- * Actualmente las ofertas se almacenan en data/offers.ts.
+ * Obtiene las relaciones editoriales del catálogo
+ * para un producto concreto.
  */
-export function getAllOffers(): ProductOffer[] {
-  return offers;
-}
-
-/**
- * Devuelve las ofertas de un merchant concreto.
- */
-export function getOffersByMerchant(
-  merchant: ProductOffer["merchant"]
-): ProductOffer[] {
-  return offers.filter(
-    (offer) => offer.merchant === merchant
+export function getProductRelations(
+  catalogId: string
+) {
+  return relations.filter(
+    (relation) =>
+      relation.sourceId === catalogId
   );
 }
 
 /**
- * Devuelve ofertas que tienen precio disponible.
+ * Obtiene productos relacionados junto con
+ * la información editorial de la relación.
  */
-export function getPricedOffers(): ProductOffer[] {
-  return offers.filter(
-    (offer) => offer.price !== undefined
-  );
-}
+export function getRelatedProducts(
+  catalogId: string
+) {
+  return getProductRelations(catalogId)
+    .map((relation) => {
+      const product = getProductByCatalogId(
+        relation.targetId
+      );
 
-/**
- * Devuelve ofertas actualmente disponibles.
- */
-export function getAvailableOffers(): ProductOffer[] {
-  return offers.filter(
-    (offer) => offer.inStock !== false
-  );
-}
+      if (!product) {
+        return null;
+      }
 
-/**
- * Devuelve la oferta más barata.
- *
- * El coste total incluye el envío cuando está definido.
- */
-export function getBestOffer(): ProductOffer | undefined {
-  const availableOffers = getAvailableOffers().filter(
-    (offer) => offer.price !== undefined
-  );
-
-  if (availableOffers.length === 0) {
-    return undefined;
-  }
-
-  return availableOffers.reduce(
-    (best, current) => {
-      const bestTotal =
-        (best.price ?? 0) +
-        (best.shippingCost ?? 0);
-
-      const currentTotal =
-        (current.price ?? 0) +
-        (current.shippingCost ?? 0);
-
-      return currentTotal < bestTotal
-        ? current
-        : best;
-    }
-  );
+      return {
+        product,
+        relation,
+      };
+    })
+    .filter(
+      (
+        item
+      ): item is {
+        product: Product;
+        relation: {
+          sourceId: string;
+          targetId: string;
+          type: CatalogRelationType;
+          editorialReason?: string;
+        };
+      } => item !== null
+    );
 }

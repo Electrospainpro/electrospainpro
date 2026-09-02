@@ -13,18 +13,11 @@ const SCORE_MAX = 10;
 
 /**
  * Valida una puntuación individual.
- *
- * Una puntuación null significa que el criterio
- * todavía está pendiente y no genera un error.
  */
 function validateScore(
   criterion: ESPScoreCriterion,
   criterionName: string
 ): ESPScoreCriterion {
-  if (criterion.score === null) {
-    return criterion;
-  }
-
   if (
     !Number.isFinite(
       criterion.score
@@ -83,28 +76,10 @@ function validateWeights(): void {
 }
 
 /**
- * Comprueba si todos los criterios tienen
- * una puntuación válida.
- */
-export function isCompleteESPScoreCriteria(
-  criteria: ESPScoreCriteria
-): boolean {
-  return (
-    criteria.quality.score !== null &&
-    criteria.reliability.score !== null &&
-    criteria.valueForMoney.score !== null &&
-    criteria.installation.score !== null &&
-    criteria.durability.score !== null &&
-    criteria.availability.score !== null &&
-    criteria.warranty.score !== null
-  );
-}
-
-/**
  * Calcula la puntuación global ESP.
  *
- * Si falta algún criterio, devuelve un ESP Score
- * con overall null y estado pending.
+ * La puntuación se calcula exclusivamente a partir
+ * de los criterios editoriales proporcionados.
  *
  * No se asignan puntuaciones automáticamente.
  */
@@ -161,67 +136,6 @@ export function calculateESPScore(
       "warranty"
     );
 
-  const complete =
-    isCompleteESPScoreCriteria({
-      quality,
-      reliability,
-      valueForMoney,
-      installation,
-      durability,
-      availability,
-      warranty,
-    });
-
-  if (!complete) {
-    return {
-      criteria: {
-        quality,
-        reliability,
-        valueForMoney,
-        installation,
-        durability,
-        availability,
-        warranty,
-      },
-
-      overall: null,
-
-      confidence:
-        options?.confidence ??
-        "low",
-
-      status: "pending",
-
-      evaluatedAt:
-        options?.evaluatedAt,
-
-      methodologyVersion:
-        options?.methodologyVersion ??
-        "1.0",
-    };
-  }
-
-  /**
-   * Después de comprobar que todos los criterios
-   * están completos, TypeScript no puede deducir
-   * automáticamente que sus valores ya no son null.
-   *
-   * Por eso los valores se comprueban explícitamente.
-   */
-  if (
-    quality.score === null ||
-    reliability.score === null ||
-    valueForMoney.score === null ||
-    installation.score === null ||
-    durability.score === null ||
-    availability.score === null ||
-    warranty.score === null
-  ) {
-    throw new Error(
-      "ESP Score inválido: faltan criterios para calcular la puntuación."
-    );
-  }
-
   const overall =
     quality.score *
       ESP_SCORE_WEIGHTS.quality +
@@ -274,25 +188,22 @@ export function calculateESPScore(
 /**
  * Comprueba si una puntuación ESP
  * cumple la metodología.
+ *
+ * Un ESP Score con overall null representa
+ * una valoración pendiente y no puede
+ * considerarse válida como puntuación completa.
  */
 export function isValidESPScore(
   score: ESPScore
 ): boolean {
+  if (
+    score.overall ===
+    null
+  ) {
+    return false;
+  }
+
   try {
-    if (
-      score.overall === null
-    ) {
-      return false;
-    }
-
-    if (
-      !isCompleteESPScoreCriteria(
-        score.criteria
-      )
-    ) {
-      return false;
-    }
-
     const calculated =
       calculateESPScore(
         score.criteria,
@@ -335,18 +246,19 @@ export function getESPScoreWeight(
  * Comprueba si un ESP Score puede
  * publicarse oficialmente.
  *
- * Exigimos:
+ * Para publicar exigimos:
  *
- * - puntuación completa
- * - cálculo válido
+ * - puntuaciones válidas
  * - confianza alta
  * - estado published
+ * - puntuación global calculada
  */
 export function isPublishableESPScore(
   score: ESPScore
 ): boolean {
   return (
-    score.overall !== null &&
+    score.overall !==
+      null &&
     isValidESPScore(score) &&
     score.confidence ===
       "high" &&

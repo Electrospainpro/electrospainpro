@@ -393,12 +393,63 @@ if (isDryRun) {
 
 /*
  * Importación real.
+ *
+ * Antes de modificar data/relations.ts,
+ * creamos un backup para poder recuperar
+ * el estado anterior del Data Engine.
  */
+
+const BACKUP_DIR = path.join(
+  ROOT,
+  "catalog",
+  "backups"
+);
+
+fs.mkdirSync(
+  BACKUP_DIR,
+  {
+    recursive: true,
+  }
+);
+
+const timestamp =
+  new Date()
+    .toISOString()
+    .replace(
+      /[:.]/g,
+      "-"
+    );
+
+const backupPath =
+  path.join(
+    BACKUP_DIR,
+    `relations-${timestamp}.ts`
+  );
+
+fs.copyFileSync(
+  RELATIONS_PATH,
+  backupPath
+);
+
+console.log(
+  `💾 Backup creado: ${backupPath}`
+);
+
 fs.writeFileSync(
   RELATIONS_PATH,
   generatedContent,
   "utf8"
 );
+
+console.log(
+  "🟢 Relaciones importadas correctamente."
+);
+
+console.log(
+  `📄 Archivo actualizado: ${RELATIONS_PATH}`
+);
+
+console.log("");
 
 console.log(
   "🟢 Relaciones importadas correctamente."
